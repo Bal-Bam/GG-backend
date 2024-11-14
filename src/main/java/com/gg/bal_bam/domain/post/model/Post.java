@@ -1,9 +1,7 @@
 package com.gg.bal_bam.domain.post.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.gg.bal_bam.common.entity.BaseTimeEntity;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,10 +9,19 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Post {
+public class Post extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private Post parent; // 부모 게시글
+
+    private String content; // 내용
+    private Boolean isOriginal; // 메인 게시글인지 여부
+
+    private Double latitude; // 위도
+    private Double longitude; // 경도
 }
