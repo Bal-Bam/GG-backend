@@ -22,11 +22,25 @@ public class Post extends BaseTimeEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
-    private Post parent; // 부모 게시글
+    private Post parentPost; // 부모 게시글
 
     private String content; // 내용
     private Boolean isOriginal; // 메인 게시글인지 여부
 
     private Double latitude; // 위도
     private Double longitude; // 경도
+
+    private Post(User user, Post parentPost, String content, Boolean isOriginal, Double latitude, Double longitude) {
+        this.user = user;
+        this.parentPost = parentPost;
+        this.content = content;
+        this.isOriginal = isOriginal;
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
+
+    public static Post createPost(User user, Post parentPost, String content, Boolean isOriginal, Double latitude, Double longitude) {
+        return new Post(user, parentPost, content, isOriginal, latitude, longitude);
+    }
+
 }
