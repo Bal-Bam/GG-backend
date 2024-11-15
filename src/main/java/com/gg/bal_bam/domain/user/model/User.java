@@ -1,92 +1,80 @@
 package com.gg.bal_bam.domain.user.model;
 
+import com.gg.bal_bam.common.entity.BaseTimeEntity;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
+import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
-@Getter
 @Entity
-@Table(name = "users", uniqueConstraints = {
-        @UniqueConstraint(columnNames = "email"),
-        @UniqueConstraint(columnNames = "username")
-})
-public class User {
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class User extends BaseTimeEntity {
 
     @Id
-    @GeneratedValue
-    @JdbcTypeCode(SqlTypes.UUID)
-    private String id;
-
-    @Column(nullable = false, length = 100)
-    private String name;
-
-    @Column(nullable = false, length = 100, unique = true)
-    private String username;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(nullable = true) // 일반 로그인에서만 사용
     private String password;
+
+    @Column(nullable = false, unique = true, length = 50)
+    private String username;
+
     private String profileImage;
 
     @Column(length = 500)
     private String description;
+
     private Integer dailyGoalSteps;
 
     @Column(nullable = false)
-    private Boolean isPrivate = false;
+    private Boolean isPrivate = false; // default: 공개 계정
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private AuthProvider provider = AuthProvider.LOCAL;
+    private AuthProvider provider;
 
+    @Column(nullable = true) // 소셜 로그인에서만 사용
     private String providerId;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setPassword(String password) {
+    // 필수 필드
+    private User(String email, String password, String username, AuthProvider provider) {
+        this.email = email;
         this.password = password;
+        this.username = username;
+        this.provider = provider;
     }
 
-    public void setProfileImage(String profileImage) {
-        this.profileImage = profileImage;
+    // 일반 로그인
+    public static User createUser(String email, String password, String username) {
+        return new User(email, password, username, AuthProvider.LOCAL);
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    // 소셜 로그인
+    public static User createSocialUser(String email, String username, AuthProvider provider, String providerId) {
+        User user = new User(email, null, username, provider); // password는 null
+        user.providerId = providerId;
+        return user;
     }
 
-    public void setDailyGoalSteps(Integer dailyGoalSteps) {
-        this.dailyGoalSteps = dailyGoalSteps;
+    // 회원정보 수정
+    public void updateProfile(String username, String profileImage, String description, Integer dailyGoalSteps, Boolean isPrivate) {
+        if (username != null) this.username = username;
+        if (profileImage != null) this.profileImage = profileImage;
+        if (description != null) this.description = description;
+        if (dailyGoalSteps != null) this.dailyGoalSteps = dailyGoalSteps;
+        if (isPrivate != null) this.isPrivate = isPrivate;
     }
 
-    public void setIsPrivate(Boolean isPrivate) {
-        this.isPrivate = isPrivate;
+    // 비밀번호 변경
+    public void changePassword(String currentPassword, String newPassword) {
+        if (!this.password.equals(currentPassword)) {
+            throw new IllegalArgumentException("Current password is incorrect");
+        }
+        this.password = newPassword;
     }
 }
