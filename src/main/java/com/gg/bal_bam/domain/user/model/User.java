@@ -5,6 +5,10 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -12,8 +16,10 @@ import lombok.NoArgsConstructor;
 public class User extends BaseTimeEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    @JdbcTypeCode(SqlTypes.UUID)
+    private UUID id;
+
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -63,18 +69,28 @@ public class User extends BaseTimeEntity {
 
     // 회원정보 수정
     public void updateProfile(String username, String profileImage, String description, Integer dailyGoalSteps, Boolean isPrivate) {
-        if (username != null) this.username = username;
-        if (profileImage != null) this.profileImage = profileImage;
-        if (description != null) this.description = description;
-        if (dailyGoalSteps != null) this.dailyGoalSteps = dailyGoalSteps;
-        if (isPrivate != null) this.isPrivate = isPrivate;
+        if (username == null || username.isBlank()) {
+            throw new IllegalArgumentException("유저네임을 입력해주세요");
+        }
+        this.profileImage = profileImage;
+        this.description = description;
+        this.dailyGoalSteps = dailyGoalSteps;
+        this.isPrivate = isPrivate;
     }
 
     // 비밀번호 변경
     public void changePassword(String currentPassword, String newPassword) {
-        if (!this.password.equals(currentPassword)) {
-            throw new IllegalArgumentException("Current password is incorrect");
+        // 비밀번호가 null인지 확인
+        if (currentPassword == null || newPassword == null) {
+            throw new IllegalArgumentException("값이 null");
         }
+
+        // 현재 비밀번호가 일치하는지 확인
+        if (!this.password.equals(currentPassword)) {
+            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다");
+        }
+
+        // 새 비밀번호 설정
         this.password = newPassword;
     }
 }
