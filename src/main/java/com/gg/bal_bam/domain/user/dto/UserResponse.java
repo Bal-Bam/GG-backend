@@ -11,15 +11,15 @@ import java.util.UUID;
 public class UserResponse {
     private UUID userId;
     private String username;
-    private String profileImageUrl;
+    private String profileImage;
 
-    private UserResponse(UUID userId, String username, String profileImageUrl) {
+    private UserResponse(UUID userId, String username, String profileImage) {
         this.userId = userId;
         this.username = username;
-        this.profileImageUrl = profileImageUrl;
+        this.profileImage = profileImage;
     }
 
-    public static UserResponse of(UUID userId, String username, String profileImageUrl) {
-        return new UserResponse(userId, username, profileImageUrl);
+    public static UserResponse of(UUID userId, String username, String profileImage) {
+        return new UserResponse(userId, username, profileImage);
     }
 }
