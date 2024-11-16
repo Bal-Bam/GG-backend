@@ -1,4 +1,4 @@
-package com.gg.bal_bam.domain.post;
+package com.gg.bal_bam.domain.post.repository;
 
 import com.gg.bal_bam.domain.post.model.Post;
 import org.springframework.data.jpa.repository.JpaRepository;
