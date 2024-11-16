@@ -1,12 +1,17 @@
 package com.gg.bal_bam.domain.post.dto;
 
+import com.gg.bal_bam.domain.post.model.Post;
+import com.gg.bal_bam.domain.post.model.PostTag;
 import com.gg.bal_bam.domain.user.dto.TaggedUserRequest;
+import com.gg.bal_bam.domain.user.dto.TaggedUserResponse;
 import com.gg.bal_bam.domain.user.dto.UserResponse;
+import com.gg.bal_bam.domain.user.model.User;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
@@ -17,11 +22,11 @@ public class PostResponse {
     private String content;
     private Double latitude;
     private Double longitude;
-    private List<> taggedUsers; // 태그된 사용자 목록
+    private List<TaggedUserResponse> taggedUsers; // 태그된 사용자 목록
     private LocalDateTime createdAt;
     private List<PostResponse> childPosts; // 자식 게시글 목록
 
-    private PostResponse(Long postId, UserResponse user, String content, Double latitude, Double longitude, List<TaggedUserRequest> taggedUsers, LocalDateTime createdAt, List<PostResponse> childPosts) {
+    private PostResponse(Long postId, UserResponse user, String content, Double latitude, Double longitude, List<TaggedUserResponse> taggedUsers, LocalDateTime createdAt, List<PostResponse> childPosts) {
         this.postId = postId;
         this.user = user;
         this.content = content;
@@ -32,7 +37,39 @@ public class PostResponse {
         this.childPosts = childPosts;
     }
 
-    public static PostResponse of(Long postId, UserResponse user, String content, Double latitude, Double longitude, List<TaggedUserRequest> taggedUsers, LocalDateTime createdAt, List<PostResponse> childPosts) {
-        return new PostResponse(postId, user, content, latitude, longitude, taggedUsers, createdAt, childPosts);
+    public static PostResponse of(Post post, List<PostTag> postTags, List<Post> childPosts) {
+        User user = post.getUser();
+
+        UserResponse userResponse = UserResponse.of(
+                user.getId(),
+                user.getUsername(),
+                user.getProfileImage()
+        );
+
+        List<TaggedUserResponse> taggedUserResponses = postTags.stream()
+                .map(postTag -> TaggedUserResponse.of(
+                        postTag.getTaggedUser().getId(),
+                        postTag.getTaggedUser().getUsername()
+                ))
+                .toList();
+
+        List<PostResponse> childPostResponses = childPosts.stream()
+                .map(childPost -> PostResponse.of(
+                        childPost,
+                        List.of(),
+                        List.of() // 자식 게시글의 자식 게시글은 빈 리스트로 초기화
+                ))
+                .toList();
+
+        return new PostResponse(
+                post.getId(),
+                userResponse,
+                post.getContent(),
+                post.getLatitude(),
+                post.getLongitude(),
+                taggedUserResponses,
+                post.getCreatedAt(),
+                childPostResponses
+        );
     }
 }
