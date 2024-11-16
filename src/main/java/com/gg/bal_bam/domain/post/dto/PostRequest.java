@@ -23,6 +23,8 @@ public class PostRequest {
     private Double latitude;
     private Double longitude;
 
+    private Long parentId; //부모 게시글 ID
+
     private List<TaggedUserRequest> taggedUsers; //태그된 사용자 목록
 
 }
