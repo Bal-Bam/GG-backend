@@ -93,4 +93,21 @@ public class PostService {
             });
         }
     }
+
+    @Transactional
+    public void deletePost(Long postId, UUID userId) {
+        Post post = postRepository.findById(postId).orElseThrow(
+                () -> new CustomException("게시글이 존재하지 않습니다. 게시글 ID: " + postId)
+        );
+
+        // 작성자인지 확인
+        if (!post.getUser().getId().equals(userId)) {
+            throw new CustomException("게시글 작성자만 삭제할 수 있습니다.");
+        }
+
+        //관련 태그 삭제
+        postTagRepository.deleteByPost(post);
+
+        postRepository.delete(post);
+    }
 }
