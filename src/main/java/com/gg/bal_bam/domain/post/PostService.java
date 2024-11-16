@@ -3,6 +3,9 @@ package com.gg.bal_bam.domain.post;
 import com.gg.bal_bam.domain.post.dto.PostRequest;
 import com.gg.bal_bam.domain.post.dto.PostUpdateRequest;
 import com.gg.bal_bam.domain.post.model.Post;
+import com.gg.bal_bam.domain.post.model.PostTag;
+import com.gg.bal_bam.domain.post.repository.PostRepository;
+import com.gg.bal_bam.domain.post.repository.PostTagRepository;
 import com.gg.bal_bam.domain.user.model.User;
 import com.gg.bal_bam.exception.CustomException;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +20,7 @@ import java.util.UUID;
 public class PostService {
 
     private final PostRepository postRepository;
+    private final PostTagRepository postTagRepository;
 
     /**
      * 게시글 작성
@@ -54,7 +58,14 @@ public class PostService {
 
         postRepository.save(post);
 
-        //태그 사용자 처리 코드 추가
+        //태그 사용자 처리 코드
+        if (postRequest.getTaggedUsers() != null) {
+            postRequest.getTaggedUsers().forEach(taggedUserRequest -> {
+                User taggedUser = null; // UserRepository 완료되면 추가
+                PostTag postTag = PostTag.createPostTag(post, taggedUser);
+                postTagRepository.save(postTag);
+            });
+        }
     }
 
     // 게시글 수정
@@ -72,6 +83,14 @@ public class PostService {
 
         post.updatePost(postUpdateRequest.getContent());
 
-        //태그 사용자 처리 코드 추가
+        //태그 사용자 처리 코드: 기존 태그 사용자 삭제 후 추가
+        postTagRepository.deleteByPost(post);
+        if (postUpdateRequest.getTaggedUsers() != null) {
+            postUpdateRequest.getTaggedUsers().forEach(taggedUserRequest -> {
+                User taggedUser = null; // UserRepository 완료되면 추가
+                PostTag postTag = PostTag.createPostTag(post, taggedUser);
+                postTagRepository.save(postTag);
+            });
+        }
     }
 }
