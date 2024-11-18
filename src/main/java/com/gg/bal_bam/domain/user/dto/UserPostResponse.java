@@ -8,18 +8,18 @@ import java.util.UUID;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class UserResponse {
+public class UserPostResponse {
     private UUID userId;
     private String username;
     private String profileImage;
 
-    private UserResponse(UUID userId, String username, String profileImage) {
+    private UserPostResponse(UUID userId, String username, String profileImage) {
         this.userId = userId;
         this.username = username;
         this.profileImage = profileImage;
     }
 
-    public static UserResponse of(UUID userId, String username, String profileImage) {
-        return new UserResponse(userId, username, profileImage);
+    public static UserPostResponse of(UUID userId, String username, String profileImage) {
+        return new UserPostResponse(userId, username, profileImage);
     }
 }
