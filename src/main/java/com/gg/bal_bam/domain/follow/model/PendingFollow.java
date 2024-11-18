@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class FollowRequest {
+public class PendingFollow {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,12 +23,12 @@ public class FollowRequest {
     @JoinColumn(name = "target_id")
     private User target; // 팔로우 요청을 받은 사람
 
-    private FollowRequest(User requester, User target) {
+    private PendingFollow(User requester, User target) {
         this.requester = requester;
         this.target = target;
     }
 
-    public static FollowRequest createFollowRequest(User requester, User target) {
-        return new FollowRequest(requester, target);
+    public static PendingFollow createFollowRequest(User requester, User target) {
+        return new PendingFollow(requester, target);
     }
 }
