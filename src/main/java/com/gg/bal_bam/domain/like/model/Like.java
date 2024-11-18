@@ -35,4 +35,8 @@ public class Like {
     public static Like createLike(User user, Post post) {
         return new Like(user, post);
     }
+
+    public void updateLike() {
+        this.isLiked = !this.isLiked;
+    }
 }
