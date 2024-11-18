@@ -2,23 +2,21 @@ package com.gg.bal_bam.domain.post.dto;
 
 import com.gg.bal_bam.domain.post.model.Post;
 import com.gg.bal_bam.domain.post.model.PostTag;
-import com.gg.bal_bam.domain.user.dto.TaggedUserRequest;
 import com.gg.bal_bam.domain.user.dto.TaggedUserResponse;
-import com.gg.bal_bam.domain.user.dto.UserResponse;
+import com.gg.bal_bam.domain.user.dto.UserPostResponse;
 import com.gg.bal_bam.domain.user.model.User;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Getter
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class PostResponse {
 
     private Long postId;
-    private UserResponse user; // 게시글 작성자
+    private UserPostResponse user; // 게시글 작성자
     private String content;
     private Double latitude;
     private Double longitude;
@@ -26,7 +24,7 @@ public class PostResponse {
     private LocalDateTime createdAt;
     private List<PostResponse> childPosts; // 자식 게시글 목록
 
-    private PostResponse(Long postId, UserResponse user, String content, Double latitude, Double longitude, List<TaggedUserResponse> taggedUsers, LocalDateTime createdAt, List<PostResponse> childPosts) {
+    private PostResponse(Long postId, UserPostResponse user, String content, Double latitude, Double longitude, List<TaggedUserResponse> taggedUsers, LocalDateTime createdAt, List<PostResponse> childPosts) {
         this.postId = postId;
         this.user = user;
         this.content = content;
@@ -40,7 +38,7 @@ public class PostResponse {
     public static PostResponse of(Post post, List<PostTag> postTags, List<Post> childPosts) {
         User user = post.getUser();
 
-        UserResponse userResponse = UserResponse.of(
+        UserPostResponse userPostResponse = UserPostResponse.of(
                 user.getId(),
                 user.getUsername(),
                 user.getProfileImage()
@@ -63,7 +61,7 @@ public class PostResponse {
 
         return new PostResponse(
                 post.getId(),
-                userResponse,
+                userPostResponse,
                 post.getContent(),
                 post.getLatitude(),
                 post.getLongitude(),
