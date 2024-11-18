@@ -1,6 +1,7 @@
 package com.gg.bal_bam.domain.post;
 
 import com.gg.bal_bam.domain.post.dto.PostRequest;
+import com.gg.bal_bam.domain.post.dto.PostResponse;
 import com.gg.bal_bam.domain.post.dto.PostUpdateRequest;
 import com.gg.bal_bam.domain.post.model.Post;
 import com.gg.bal_bam.domain.post.model.PostTag;
@@ -12,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -61,7 +63,7 @@ public class PostService {
         //태그 사용자 처리 코드
         if (postRequest.getTaggedUsers() != null) {
             postRequest.getTaggedUsers().forEach(taggedUserRequest -> {
-                User taggedUser = null; // UserRepository 완료되면 추가
+                User taggedUser = null; // UserRepository 완료되면 추가(username으로 검색)
                 PostTag postTag = PostTag.createPostTag(post, taggedUser);
                 postTagRepository.save(postTag);
             });
@@ -87,7 +89,7 @@ public class PostService {
         postTagRepository.deleteByPost(post);
         if (postUpdateRequest.getTaggedUsers() != null) {
             postUpdateRequest.getTaggedUsers().forEach(taggedUserRequest -> {
-                User taggedUser = null; // UserRepository 완료되면 추가
+                User taggedUser = null; // UserRepository 완료되면 추가(username으로 검색)
                 PostTag postTag = PostTag.createPostTag(post, taggedUser);
                 postTagRepository.save(postTag);
             });
@@ -109,5 +111,20 @@ public class PostService {
         postTagRepository.deleteByPost(post);
 
         postRepository.delete(post);
+    }
+
+    // 게시글 상세 조회
+    @Transactional
+    public PostResponse getPostDetail(Long postId) {
+        Post post = postRepository.findById(postId).orElseThrow(
+                () -> new CustomException("게시글이 존재하지 않습니다. 게시글 ID: " + postId)
+        );
+
+        List<PostTag> postTags = postTagRepository.findByPost(post);
+
+        List<Post> childPosts = postRepository.findByParentPost(post);
+
+        return PostResponse.of(post, postTags, childPosts);
+
     }
 }
