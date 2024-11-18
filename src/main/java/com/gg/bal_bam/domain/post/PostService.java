@@ -7,6 +7,8 @@ import com.gg.bal_bam.domain.post.model.Post;
 import com.gg.bal_bam.domain.post.model.PostTag;
 import com.gg.bal_bam.domain.post.repository.PostRepository;
 import com.gg.bal_bam.domain.post.repository.PostTagRepository;
+import com.gg.bal_bam.domain.user.UserRepository;
+import com.gg.bal_bam.domain.user.dto.TaggedUserRequest;
 import com.gg.bal_bam.domain.user.model.User;
 import com.gg.bal_bam.exception.CustomException;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final PostTagRepository postTagRepository;
+    private final UserRepository userRepository;
 
     /**
      * 게시글 작성
@@ -30,7 +33,9 @@ public class PostService {
     @Transactional
     public void createPost(PostRequest postRequest, UUID userId) {
 
-        User user = null;// UserRepository 완료되면 추가
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new CustomException("사용자가 존재하지 않습니다. UserId: " + userId)
+        );
 
         Post parentPost = null;
         boolean isOriginal = true;
@@ -61,13 +66,7 @@ public class PostService {
         postRepository.save(post);
 
         //태그 사용자 처리 코드
-        if (postRequest.getTaggedUsers() != null) {
-            postRequest.getTaggedUsers().forEach(taggedUserRequest -> {
-                User taggedUser = null; // UserRepository 완료되면 추가(username으로 검색)
-                PostTag postTag = PostTag.createPostTag(post, taggedUser);
-                postTagRepository.save(postTag);
-            });
-        }
+        processTaggedUsers(post, postRequest.getTaggedUsers());
     }
 
     // 게시글 수정
@@ -87,9 +86,16 @@ public class PostService {
 
         //태그 사용자 처리 코드: 기존 태그 사용자 삭제 후 추가
         postTagRepository.deleteByPost(post);
-        if (postUpdateRequest.getTaggedUsers() != null) {
-            postUpdateRequest.getTaggedUsers().forEach(taggedUserRequest -> {
-                User taggedUser = null; // UserRepository 완료되면 추가(username으로 검색)
+        processTaggedUsers(post, postUpdateRequest.getTaggedUsers());
+    }
+
+    private void processTaggedUsers(Post post, List<TaggedUserRequest> taggedUsers) {
+        if (taggedUsers != null) {
+            taggedUsers.forEach(taggedUserRequest -> {
+                User taggedUser = userRepository.findById(taggedUserRequest.getUserId()).orElseThrow(
+                        () -> new CustomException("태그된 사용자가 존재하지 않습니다. 사용자 ID: " + taggedUserRequest.getUserId())
+                );
+
                 PostTag postTag = PostTag.createPostTag(post, taggedUser);
                 postTagRepository.save(postTag);
             });
@@ -104,7 +110,7 @@ public class PostService {
 
         // 작성자인지 확인
         if (!post.getUser().getId().equals(userId)) {
-            throw new CustomException("게시글 작성자만 삭제할 수 있습니다.");
+            throw new CustomException("게시글 작성자만 삭제할 수 있습니다. 작성자 ID: " + userId);
         }
 
         //관련 태그 삭제
