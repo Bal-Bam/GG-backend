@@ -1,5 +1,6 @@
 package com.gg.bal_bam.domain.post;
 
+import com.gg.bal_bam.domain.post.dto.PostListResponse;
 import com.gg.bal_bam.domain.post.dto.PostRequest;
 import com.gg.bal_bam.domain.post.dto.PostResponse;
 import com.gg.bal_bam.domain.post.dto.PostUpdateRequest;
@@ -132,5 +133,18 @@ public class PostService {
 
         return PostResponse.of(post, postTags, childPosts);
 
+    }
+
+    // 피드 조회
+    public List<PostListResponse> getFeed(PostRequest postRequest, UUID userId) {
+        List<Post> nearbyPosts = postRepository.findNearbyPosts(
+                postRequest.getLatitude(),
+                postRequest.getLongitude(),
+                3000.0,
+                20,
+                0
+        );
+
+        return null;
     }
 }
