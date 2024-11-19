@@ -53,4 +53,20 @@ public class FollowService {
 
         return FollowResponse.of(followingId, true, false);
     }
+
+    @Transactional
+    public FollowResponse unfollow(UUID followerId, UUID followingId) {
+        User follower = userRepository.findById(followerId)
+                .orElseThrow(() -> new CustomException("해당 유저가 존재하지 않습니다. UserId: " + followerId));
+
+        User following = userRepository.findById(followingId)
+                .orElseThrow(() -> new CustomException("해당 유저가 존재하지 않습니다. UserId: " + followingId));
+
+        Follow follow = followRepository.findByFollowerAndFollowing(follower, following)
+                .orElseThrow(() -> new CustomException("팔로우 중이 아닙니다."));
+
+        followRepository.delete(follow);
+
+        return FollowResponse.of(followingId, false, false);
+    }
 }
