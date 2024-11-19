@@ -1,9 +1,7 @@
 package com.gg.bal_bam.domain.post;
 
-import com.gg.bal_bam.domain.post.dto.PostListResponse;
-import com.gg.bal_bam.domain.post.dto.PostRequest;
-import com.gg.bal_bam.domain.post.dto.PostResponse;
-import com.gg.bal_bam.domain.post.dto.PostUpdateRequest;
+import com.gg.bal_bam.domain.follow.repository.FollowRepository;
+import com.gg.bal_bam.domain.post.dto.*;
 import com.gg.bal_bam.domain.post.model.Post;
 import com.gg.bal_bam.domain.post.model.PostTag;
 import com.gg.bal_bam.domain.post.repository.PostRepository;
@@ -13,11 +11,15 @@ import com.gg.bal_bam.domain.user.dto.TaggedUserRequest;
 import com.gg.bal_bam.domain.user.model.User;
 import com.gg.bal_bam.exception.CustomException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 @Service
 @Transactional(readOnly = true)
@@ -27,6 +29,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final PostTagRepository postTagRepository;
     private final UserRepository userRepository;
+    private final FollowRepository followRepository;
 
     /**
      * 게시글 작성
@@ -136,15 +139,31 @@ public class PostService {
     }
 
     // 피드 조회
-    public List<PostListResponse> getFeed(PostRequest postRequest, UUID userId) {
+    public List<PostListResponse> getFeed(PostListRequest postListRequest, UUID userId) {
+
+        // 팔로우한 사용자 ID 목록 조회
+        List<UUID> followedUserIds = followRepository.findFollowedIdByFollowerId(userId);
+
+        Pageable pageable = PageRequest.of(postListRequest.getOffset(), postListRequest.getLimit());
+
+        // 팔로우한 사용자들의 게시글 목록 조회
+        List<Post> followedUserPosts = postRepository.findPostsByUserIds(followedUserIds, pageable);
+
         List<Post> nearbyPosts = postRepository.findNearbyPosts(
-                postRequest.getLatitude(),
-                postRequest.getLongitude(),
+                postListRequest.getLatitude(),
+                postListRequest.getLongitude(),
                 3000.0,
-                20,
-                0
+                pageable
         );
 
-        return null;
+        List<Post> feedPosts = Stream.concat(followedUserPosts.stream(), nearbyPosts.stream())
+                .distinct()
+                .sorted(Comparator.comparing(Post::getCreatedAt).reversed())
+                .limit(postListRequest.getLimit())
+                .toList();
+
+        return feedPosts.stream()
+                .map(post -> PostListResponse.of(post, postTagRepository.findByPost(post)))
+                .toList();
     }
 }
