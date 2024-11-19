@@ -1,7 +1,6 @@
 package com.gg.bal_bam.domain.follow;
 
-import com.gg.bal_bam.common.dto.LocationBasedRequest;
-import com.gg.bal_bam.domain.follow.dto.FollowRecommendResponse;
+import com.gg.bal_bam.domain.follow.dto.FollowListResponse;
 import com.gg.bal_bam.domain.follow.dto.FollowResponse;
 import com.gg.bal_bam.domain.follow.model.Follow;
 import com.gg.bal_bam.domain.follow.model.PendingFollow;
@@ -75,13 +74,15 @@ public class FollowService {
         return FollowResponse.of(followingId, false, false);
     }
 
-    public List<FollowRecommendResponse> getFollowRecommendList(UUID userId, int offset, int limit) {
+    public List<FollowListResponse> getFollowRecommendList(UUID userId, int offset, int limit) {
 
         List<UUID> followingUserIds = followRepository.findFollowedIdByFollowerId(userId);
 
         Pageable pageable = PageRequest.of(offset, limit);
         List<User> recommendUsers = userRepository.findRandomUsers(userId, followingUserIds, pageable);
 
-        return null;
+        return recommendUsers.stream()
+                .map(user -> FollowListResponse.of(user.getId(), user.getUsername(), user.getProfileImage(), followingUserIds.contains(user.getId())))
+                .toList();
     }
 }
