@@ -85,4 +85,23 @@ public class FollowService {
                 .map(user -> FollowListResponse.of(user.getId(), user.getUsername(), user.getProfileImage(), followingUserIds.contains(user.getId())))
                 .toList();
     }
+
+    // 팔로우 수락
+    public void acceptFollow(UUID requesterId, UUID targetId) {
+        // PendingFollow 존재 확인
+        PendingFollow pendingFollow = pendingFollowRepository.findByRequesterAndTarget(requesterId, targetId)
+                .orElseThrow(() -> new CustomException("팔로우 요청이 존재하지 않습니다."));
+
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new CustomException("해당 유저가 존재하지 않습니다. UserId: " + requesterId));
+
+        User target = userRepository.findById(targetId)
+                .orElseThrow(() -> new CustomException("해당 유저가 존재하지 않습니다. UserId: " + targetId));
+
+        Follow follow = Follow.createFollow(requester, target);
+        followRepository.save(follow);
+
+        // 대기중에서 삭제
+        pendingFollowRepository.delete(pendingFollow);
+    }
 }
