@@ -1,5 +1,7 @@
-package com.gg.bal_bam.domain.user.model.service;
+package com.gg.bal_bam.domain.user.service;
 
-public class UserService {
-
+public interface UserService {
+    void registerUser(String email, String username, String password);
+    void validateEmail(String email);
+    void validateUsername(String username);
 }
