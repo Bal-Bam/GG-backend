@@ -11,6 +11,8 @@ import com.gg.bal_bam.domain.user.UserRepository;
 import com.gg.bal_bam.domain.user.model.User;
 import com.gg.bal_bam.exception.CustomException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -77,5 +79,9 @@ public class FollowService {
 
         List<UUID> followingUserIds = followRepository.findFollowedIdByFollowerId(userId);
 
+        Pageable pageable = PageRequest.of(offset, limit);
+        List<User> recommendUsers = userRepository.findRandomUsers(userId, followingUserIds, pageable);
+
+        return null;
     }
 }
