@@ -1,5 +1,7 @@
 package com.gg.bal_bam.domain.follow;
 
+import com.gg.bal_bam.common.dto.LocationBasedRequest;
+import com.gg.bal_bam.domain.follow.dto.FollowRecommendResponse;
 import com.gg.bal_bam.domain.follow.dto.FollowResponse;
 import com.gg.bal_bam.domain.follow.model.Follow;
 import com.gg.bal_bam.domain.follow.model.PendingFollow;
@@ -12,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -68,5 +71,11 @@ public class FollowService {
         followRepository.delete(follow);
 
         return FollowResponse.of(followingId, false, false);
+    }
+
+    public List<FollowRecommendResponse> getFollowRecommendList(UUID userId, int offset, int limit) {
+
+        List<UUID> followingUserIds = followRepository.findFollowedIdByFollowerId(userId);
+
     }
 }
