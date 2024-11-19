@@ -11,8 +11,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<User, UUID> {
+    // 회원가입 용
     boolean existsByEmail(String email);
     boolean existsByUsername(String username);
+    // 로그인 등
     Optional<User> findByEmail(String email);
 
     // 팔로우 추천 -> 랜덤 유저 목록 조회
