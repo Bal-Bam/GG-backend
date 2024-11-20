@@ -74,11 +74,10 @@ public class FollowService {
         return FollowResponse.of(followingId, false, false);
     }
 
-    public List<FollowListResponse> getFollowRecommendList(UUID userId, int offset, int limit) {
+    public List<FollowListResponse> getFollowRecommendList(UUID userId, Pageable pageable) {
 
         List<UUID> followingUserIds = followRepository.findFollowedIdByFollowerId(userId);
 
-        Pageable pageable = PageRequest.of(offset, limit);
         List<User> recommendUsers = userRepository.findRandomUsers(userId, followingUserIds, pageable);
 
         return recommendUsers.stream()
