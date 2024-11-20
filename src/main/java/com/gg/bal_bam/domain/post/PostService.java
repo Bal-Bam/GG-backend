@@ -114,7 +114,7 @@ public class PostService {
 
         // 작성자인지 확인
         if (!post.getUser().getId().equals(userId)) {
-            throw new CustomException("게시글 작성자만 삭제할 수 있습니다. 작성자 ID: " + userId);
+            throw new CustomException("게시글 작성자만 삭제할 수 있습니다. 요청자 ID: " + userId + ", 작성자 ID: " + post.getUser().getId());
         }
 
         //관련 태그 삭제
