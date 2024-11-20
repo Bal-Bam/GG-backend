@@ -143,12 +143,10 @@ public class PostService {
     }
 
     // 피드 조회
-    public Page<PostListResponse> getFeed(PostListRequest postListRequest, UUID userId) {
+    public Page<PostListResponse> getFeed(PostListRequest postListRequest, UUID userId, Pageable pageable) {
 
         // 팔로우한 사용자 ID 목록 조회
         List<UUID> followedUserIds = followRepository.findFollowedIdByFollowerId(userId);
-
-        Pageable pageable = PageRequest.of(postListRequest.getOffset(), postListRequest.getLimit());
 
         // 팔로우한 사용자들의 게시글 목록 조회
         Page<Post> followedUserPosts = postRepository.findPostsByUserIds(followedUserIds, pageable);
