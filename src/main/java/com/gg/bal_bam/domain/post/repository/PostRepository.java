@@ -13,6 +13,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     List<Post> findByParentPost(Post parentPost);
 
+    @Query(value = "SELECT p FROM Post p " +
+            "WHERE (6371 * acos(cos(radians(:latitude)) * cos(radians(p.latitude)) * " +
+            "cos(radians(p.longitude) - radians(:longitude)) + sin(radians(:latitude)) * sin(radians(p.latitude)))) <= :distance")
     List<Post> findNearbyPosts(@Param("latitude") double latitude,
                                @Param("longitude") double longitude,
                                @Param("distance") double distance,
