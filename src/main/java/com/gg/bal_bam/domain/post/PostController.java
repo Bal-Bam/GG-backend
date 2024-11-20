@@ -6,6 +6,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -76,17 +79,18 @@ public class PostController {
         return ResponseTemplate.ok(postService.getPostDetail(postId));
     }
 
-//    @Operation(summary = "피드 조회", description = "피드를 조회합니다.")
-//    @ApiResponse(
-//            responseCode = "200",
-//            description = "피드 조회 성공",
-//            useReturnTypeSchema = true
-//    )
-//    @GetMapping("/feed")
-//    public ResponseTemplate<PostListResponse> getFeed(
-//            @Validated @RequestBody PostListRequest postListRequest,
-//            //, userid 필요
-//    ) {
-//        return ResponseTemplate.ok(postService.getFeed(postListRequest, null));
-//    }
+    @Operation(summary = "피드 조회", description = "피드를 조회합니다.")
+    @ApiResponse(
+            responseCode = "200",
+            description = "피드 조회 성공",
+            useReturnTypeSchema = true
+    )
+    @GetMapping("/feed")
+    public ResponseTemplate<Page<PostListResponse>> getFeed(
+            @Validated @RequestBody PostListRequest postListRequest
+            //, userid 필요
+    ) {
+        Pageable pageable = PageRequest.of(postListRequest.getOffset(), postListRequest.getLimit());
+        return ResponseTemplate.ok(postService.getFeed(postListRequest, null, pageable));
+    }
 }
