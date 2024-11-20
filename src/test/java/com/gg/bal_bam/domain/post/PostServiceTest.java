@@ -16,6 +16,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -262,12 +264,12 @@ class PostServiceTest {
 
         // 팔로우한 사용자의 게시글
         Post post1 = Post.createPost(user, null, "팔로우한 사용자의 게시글", true, 37.7749, 127.1234);
-        List<Post> followedUserPosts = List.of(post1);
+        Page<Post> followedUserPosts = new PageImpl<>(List.of(post1), pageable, 1);
         ReflectionTestUtils.setField(post1, "createdAt", LocalDateTime.now());
 
         // 근처 사용자의 게시글
         Post post2 = Post.createPost(user, null, "근처 사용자의 게시글", true, 37.7749, 127.1234);
-        List<Post> nearbyPosts = List.of(post2);
+        Page<Post> nearbyPosts = new PageImpl<>(List.of(post2), pageable, 1);
         ReflectionTestUtils.setField(post2, "createdAt", LocalDateTime.now());
 
         when(followRepository.findFollowedIdByFollowerId(userId)).thenReturn(followedUserIds);
@@ -275,7 +277,7 @@ class PostServiceTest {
         when(postRepository.findNearbyPosts(postListRequest.getLatitude(), postListRequest.getLongitude(), 3000.0, pageable)).thenReturn(nearbyPosts);
 
         // when
-        List<PostListResponse> feed = postService.getFeed(postListRequest, userId);
+        Page<PostListResponse> feed = postService.getFeed(postListRequest, userId);
 
         // then
         assertThat(feed).isNotNull();

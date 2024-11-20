@@ -11,6 +11,8 @@ import com.gg.bal_bam.domain.user.dto.TaggedUserRequest;
 import com.gg.bal_bam.domain.user.model.User;
 import com.gg.bal_bam.exception.CustomException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -141,7 +143,7 @@ public class PostService {
     }
 
     // 피드 조회
-    public List<PostListResponse> getFeed(PostListRequest postListRequest, UUID userId) {
+    public Page<PostListResponse> getFeed(PostListRequest postListRequest, UUID userId) {
 
         // 팔로우한 사용자 ID 목록 조회
         List<UUID> followedUserIds = followRepository.findFollowedIdByFollowerId(userId);
@@ -149,9 +151,9 @@ public class PostService {
         Pageable pageable = PageRequest.of(postListRequest.getOffset(), postListRequest.getLimit());
 
         // 팔로우한 사용자들의 게시글 목록 조회
-        List<Post> followedUserPosts = postRepository.findPostsByUserIds(followedUserIds, pageable);
+        Page<Post> followedUserPosts = postRepository.findPostsByUserIds(followedUserIds, pageable);
 
-        List<Post> nearbyPosts = postRepository.findNearbyPosts(
+        Page<Post> nearbyPosts = postRepository.findNearbyPosts(
                 postListRequest.getLatitude(),
                 postListRequest.getLongitude(),
                 3000.0,
@@ -164,8 +166,13 @@ public class PostService {
                 .limit(postListRequest.getLimit())
                 .toList();
 
-        return feedPosts.stream()
-                .map(post -> PostListResponse.of(post, postTagRepository.findByPost(post)))
-                .toList();
+        return new PageImpl<>(
+                feedPosts.stream()
+                        .map(post -> PostListResponse.of(post, postTagRepository.findByPost(post)))
+                        .toList(),
+                pageable,
+                feedPosts.size()
+        );
+
     }
 }
