@@ -22,7 +22,7 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleCustomException() {
-        CustomException customException = new CustomException("CustomException test");
+        CustomException customException = new CustomException("요청에 실패했습니다.");
         ResponseTemplate<String> response = globalExceptionHandler.handleCustomException(customException);
 
         assertThat(response.isStatus()).isFalse(); //status가 false인지 확인
@@ -31,7 +31,7 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleException() {
-        Exception exception = new Exception("Exception test");
+        Exception exception = new Exception("요청에 실패했습니다.");
         ResponseTemplate<String> response = globalExceptionHandler.handleException(exception);
 
         assertThat(response.isStatus()).isFalse(); //status가 false인지 확인
