@@ -28,8 +28,8 @@ public class ResponseTemplate<T> {
         return new ResponseTemplate<>(true, message, results);
     }
 
-    public static <T> ResponseTemplate<T> fail(T results) {
-        return new ResponseTemplate<>(false, "요청에 실패했습니다.", null);
+    public static <T> ResponseTemplate<T> fail(String message) {
+        return new ResponseTemplate<>(false, message, null);
     }
 
 

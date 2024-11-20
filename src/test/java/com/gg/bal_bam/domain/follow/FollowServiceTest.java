@@ -9,6 +9,7 @@ import com.gg.bal_bam.domain.follow.repository.PendingFollowRepository;
 import com.gg.bal_bam.domain.user.UserRepository;
 import com.gg.bal_bam.domain.user.model.User;
 import com.gg.bal_bam.exception.CustomException;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -24,7 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -89,8 +92,8 @@ class FollowServiceTest {
 
         //then
         verify(followRepository, times(1)).save(any(Follow.class));
-        assertTrue(response.isFollowed());
-        assertFalse(response.isPending());
+        assertThat(response.isFollowed()).isTrue();
+        assertThat(response.isPending()).isFalse();
     }
 
     @Test
@@ -107,8 +110,8 @@ class FollowServiceTest {
 
         //then
         verify(pendingFollowRepository, times(1)).save(any(PendingFollow.class));
-        assertFalse(response.isFollowed());
-        assertTrue(response.isPending());
+        assertThat(response.isFollowed()).isFalse();
+        assertThat(response.isPending()).isTrue();
     }
 
     @Test
@@ -120,7 +123,9 @@ class FollowServiceTest {
         when(followRepository.existsByFollowerAndFollowing(follower, publicFollowing)).thenReturn(true);
 
         //when / then
-        assertThrows(CustomException.class, () -> followService.follow(followerId, publicFollowingId));
+        assertThatThrownBy(() -> followService.follow(followerId, publicFollowingId))
+                .isInstanceOf(CustomException.class)
+                .hasMessage("이미 팔로우 중입니다.");
         verify(followRepository, never()).save(any(Follow.class));
     }
 
@@ -138,8 +143,8 @@ class FollowServiceTest {
 
         // then
         verify(pendingFollowRepository, never()).save(any(PendingFollow.class));
-        assertFalse(response.isFollowed());
-        assertTrue(response.isPending());
+        assertThat(response.isFollowed()).isFalse();
+        assertThat(response.isPending()).isTrue();
     }
 
     @Test
@@ -149,7 +154,9 @@ class FollowServiceTest {
         when(userRepository.findById(followerId)).thenReturn(Optional.empty());
 
         //when / then
-        assertThrows(CustomException.class, () -> followService.follow(followerId, publicFollowingId));
+        assertThatThrownBy(() -> followService.follow(followerId, publicFollowingId))
+                .isInstanceOf(CustomException.class)
+                .hasMessage("해당 유저가 존재하지 않습니다. UserId: " + followerId);
     }
 
     @Test
@@ -166,8 +173,8 @@ class FollowServiceTest {
 
         //then
         verify(followRepository, times(1)).delete(follow);
-        assertFalse(response.isFollowed());
-        assertFalse(response.isPending());
+        assertThat(response.isFollowed()).isFalse();
+        assertThat(response.isPending()).isFalse();
     }
 
     @Test
@@ -179,7 +186,9 @@ class FollowServiceTest {
         when(followRepository.findByFollowerAndFollowing(follower, publicFollowing)).thenReturn(Optional.empty());
 
         //when / then
-        assertThrows(CustomException.class, () -> followService.unfollow(followerId, publicFollowingId));
+        assertThatThrownBy(() -> followService.unfollow(followerId, publicFollowingId))
+                .isInstanceOf(CustomException.class)
+                .hasMessage("팔로우 중이 아닙니다.");
 
     }
 
@@ -190,26 +199,25 @@ class FollowServiceTest {
         UUID userId = UUID.randomUUID();
         int offset = 0;
         int limit = 5;
+        Pageable pageable = PageRequest.of(offset, limit);
 
         User user1 = User.createUser("user1@example.com", "password1", "user1");
         User user2 = User.createUser("user2@example.com", "password2", "user2");
         ReflectionTestUtils.setField(user1, "id", UUID.randomUUID());
         ReflectionTestUtils.setField(user2, "id", UUID.randomUUID());
 
-        List<User> recommendUsers = List.of(user2);
+        Page<User> recommendUsers = new PageImpl<>(List.of(user2), pageable, 1);
         List<UUID> followingUserIds = List.of(user1.getId());
-
-        Pageable pageable = PageRequest.of(offset, limit);
 
         when(followRepository.findFollowedIdByFollowerId(userId)).thenReturn(followingUserIds);
         when(userRepository.findRandomUsers(eq(userId), eq(followingUserIds), any(Pageable.class))).thenReturn(recommendUsers);
 
         //when
-        List<FollowListResponse> responses = followService.getFollowRecommendList(userId, pageable);
+        Page<FollowListResponse> responses = followService.getFollowRecommendList(userId, pageable);
 
         //then
-        assertEquals(1, responses.size());
-        assertEquals(user2.getId(), responses.get(0).getUserId());
-
+        assertThat(responses).isNotNull();
+        assertThat(responses.getContent()).hasSize(1);
+        assertThat(responses.getContent().get(0).getUserId()).isEqualTo(user2.getId());
     }
 }

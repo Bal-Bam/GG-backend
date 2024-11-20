@@ -10,6 +10,7 @@ import com.gg.bal_bam.domain.user.UserRepository;
 import com.gg.bal_bam.domain.user.model.User;
 import com.gg.bal_bam.exception.CustomException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -74,14 +75,17 @@ public class FollowService {
         return FollowResponse.of(followingId, false, false);
     }
 
-    public List<FollowListResponse> getFollowRecommendList(UUID userId, Pageable pageable) {
+    public Page<FollowListResponse> getFollowRecommendList(UUID userId, Pageable pageable) {
 
         List<UUID> followingUserIds = followRepository.findFollowedIdByFollowerId(userId);
 
-        List<User> recommendUsers = userRepository.findRandomUsers(userId, followingUserIds, pageable);
+        Page<User> recommendUsers = userRepository.findRandomUsers(userId, followingUserIds, pageable);
 
-        return recommendUsers.stream()
-                .map(user -> FollowListResponse.of(user.getId(), user.getUsername(), user.getProfileImage(), followingUserIds.contains(user.getId())))
-                .toList();
+        return recommendUsers.map(user -> FollowListResponse.of(
+                user.getId(),
+                user.getUsername(),
+                user.getProfileImage(),
+                followingUserIds.contains(user.getId())
+        ));
     }
 }
