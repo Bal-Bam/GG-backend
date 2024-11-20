@@ -43,4 +43,8 @@ public class Post extends BaseTimeEntity {
         return new Post(user, parentPost, content, isOriginal, latitude, longitude);
     }
 
+    public void updatePost(String content) {
+        this.content = content;
+    }
+
 }
