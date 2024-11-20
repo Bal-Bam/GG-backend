@@ -67,10 +67,11 @@ public class PostService {
                 postRequest.getLongitude()
         );
 
-        postRepository.save(post);
-
         //태그 사용자 처리 코드
         processTaggedUsers(post, postRequest.getTaggedUsers());
+
+        postRepository.save(post);
+
     }
 
     // 게시글 수정
@@ -88,9 +89,10 @@ public class PostService {
 
         post.updatePost(postUpdateRequest.getContent());
 
+        processTaggedUsers(post, postUpdateRequest.getTaggedUsers());
+
         //태그 사용자 처리 코드: 기존 태그 사용자 삭제 후 추가
         postTagRepository.deleteByPost(post);
-        processTaggedUsers(post, postUpdateRequest.getTaggedUsers());
     }
 
     private void processTaggedUsers(Post post, List<TaggedUserRequest> taggedUsers) {
@@ -114,7 +116,7 @@ public class PostService {
 
         // 작성자인지 확인
         if (!post.getUser().getId().equals(userId)) {
-            throw new CustomException("게시글 작성자만 삭제할 수 있습니다. 작성자 ID: " + userId);
+            throw new CustomException("게시글 작성자만 삭제할 수 있습니다. 요청자 ID: " + userId + ", 작성자 ID: " + post.getUser().getId());
         }
 
         //관련 태그 삭제
