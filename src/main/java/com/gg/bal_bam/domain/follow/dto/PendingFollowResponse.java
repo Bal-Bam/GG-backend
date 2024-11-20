@@ -7,15 +7,15 @@ import java.util.UUID;
 
 @Getter
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
-public class FollowRequestResponse {
+public class PendingFollowResponse {
 
     private UUID requesterId; // 팔로우 요청자 userId
 
-    private FollowRequestResponse(UUID requesterId) {
+    private PendingFollowResponse(UUID requesterId) {
         this.requesterId = requesterId;
     }
 
-    public static FollowRequestResponse of(UUID requesterId) {
-        return new FollowRequestResponse(requesterId);
+    public static PendingFollowResponse of(UUID requesterId) {
+        return new PendingFollowResponse(requesterId);
     }
 }
