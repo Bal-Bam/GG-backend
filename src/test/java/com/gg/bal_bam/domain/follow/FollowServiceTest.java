@@ -1,5 +1,6 @@
 package com.gg.bal_bam.domain.follow;
 
+import com.gg.bal_bam.domain.follow.dto.FollowListResponse;
 import com.gg.bal_bam.domain.follow.dto.FollowResponse;
 import com.gg.bal_bam.domain.follow.model.Follow;
 import com.gg.bal_bam.domain.follow.model.PendingFollow;
@@ -15,8 +16,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -176,6 +180,36 @@ class FollowServiceTest {
 
         //when / then
         assertThrows(CustomException.class, () -> followService.unfollow(followerId, publicFollowingId));
+
+    }
+
+    @Test
+    @DisplayName("팔로우 추천 리스트 조회 성공")
+    void getFollowRecommendListSuccess() {
+        //given
+        UUID userId = UUID.randomUUID();
+        int offset = 0;
+        int limit = 5;
+
+        User user1 = User.createUser("user1@example.com", "password1", "user1");
+        User user2 = User.createUser("user2@example.com", "password2", "user2");
+        ReflectionTestUtils.setField(user1, "id", UUID.randomUUID());
+        ReflectionTestUtils.setField(user2, "id", UUID.randomUUID());
+
+        List<User> recommendUsers = List.of(user2);
+        List<UUID> followingUserIds = List.of(user1.getId());
+
+        Pageable pageable = PageRequest.of(offset, limit);
+
+        when(followRepository.findFollowedIdByFollowerId(userId)).thenReturn(followingUserIds);
+        when(userRepository.findRandomUsers(eq(userId), eq(followingUserIds), any(Pageable.class))).thenReturn(recommendUsers);
+
+        //when
+        List<FollowListResponse> responses = followService.getFollowRecommendList(userId, pageable);
+
+        //then
+        assertEquals(1, responses.size());
+        assertEquals(user2.getId(), responses.get(0).getUserId());
 
     }
 }
