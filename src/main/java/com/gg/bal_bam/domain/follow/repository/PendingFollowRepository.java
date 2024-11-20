@@ -10,6 +10,4 @@ import java.util.UUID;
 public interface PendingFollowRepository extends JpaRepository<PendingFollow, Long> {
 
     boolean existsByRequesterAndTarget(User requester, User target);
-
-    Optional<PendingFollow> findByRequesterAndTarget(UUID requesterId, UUID targetId);
 }
