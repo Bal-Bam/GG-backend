@@ -2,6 +2,7 @@ package com.gg.bal_bam.domain.follow;
 
 import com.gg.bal_bam.domain.follow.dto.FollowListResponse;
 import com.gg.bal_bam.domain.follow.dto.FollowResponse;
+import com.gg.bal_bam.domain.follow.dto.PendingFollowResponse;
 import com.gg.bal_bam.domain.follow.model.Follow;
 import com.gg.bal_bam.domain.follow.model.PendingFollow;
 import com.gg.bal_bam.domain.follow.repository.FollowRepository;
@@ -9,7 +10,6 @@ import com.gg.bal_bam.domain.follow.repository.PendingFollowRepository;
 import com.gg.bal_bam.domain.user.UserRepository;
 import com.gg.bal_bam.domain.user.model.User;
 import com.gg.bal_bam.exception.CustomException;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -56,6 +56,14 @@ class FollowServiceTest {
     private User privateFollowing;
     private UUID privateFollowingId;
 
+    @Mock
+    private User user;
+    private UUID userId;
+
+    @Mock
+    private User requester;
+    private UUID requesterId;
+
     @BeforeEach
     public void setUp() {
         followerId = UUID.randomUUID();
@@ -77,6 +85,14 @@ class FollowServiceTest {
         // 팔로워
         follower = User.createUser("follower@example.com", "password","follower");
         ReflectionTestUtils.setField(follower, "id", followerId);
+
+        userId = UUID.randomUUID();
+        requesterId = UUID.randomUUID();
+
+        user = User.createUser("user@example.com", "password", "user");
+        requester = User.createUser("requester@example.com", "password", "requester");
+        ReflectionTestUtils.setField(user, "id", userId);
+        ReflectionTestUtils.setField(requester, "id", requesterId);
     }
 
     @Test
@@ -219,5 +235,121 @@ class FollowServiceTest {
         assertThat(responses).isNotNull();
         assertThat(responses.getContent()).hasSize(1);
         assertThat(responses.getContent().get(0).getUserId()).isEqualTo(user2.getId());
+    }
+
+    @Test
+    @DisplayName("팔로우 요청 수락 성공")
+    void acceptFollowRequestSuccess() {
+        //given
+        PendingFollow pendingFollow = PendingFollow.createFollowRequest(requester, user);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
+        when(pendingFollowRepository.findByRequesterAndTarget(requester, user)).thenReturn(Optional.of(pendingFollow));
+
+        //when
+        PendingFollowResponse response = followService.acceptFollowRequest(userId, requesterId);
+
+        //then
+        verify(followRepository, times(1)).save(any(Follow.class));
+        verify(pendingFollowRepository, times(1)).delete(pendingFollow);
+        assertThat(response).isNotNull();
+        assertThat(response.getRequesterId()).isEqualTo(requesterId);
+
+    }
+
+    @Test
+    @DisplayName("팔로우 요청 수락 시 요청이 존재하지 않을 경우")
+    void acceptFollowRequestNonExistRequest() {
+        //given
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
+        when(pendingFollowRepository.findByRequesterAndTarget(requester, user)).thenReturn(Optional.empty());
+
+        //when / then
+        assertThatThrownBy(() -> followService.acceptFollowRequest(userId, requesterId))
+                .isInstanceOf(CustomException.class)
+                .hasMessage("해당 요청이 존재하지 않습니다.");
+    }
+
+    @Test
+    @DisplayName("팔로우 요청 수락 시 요청자가 존재하지 않을 경우")
+    void acceptFollowRequestNonExistRequester() {
+        //given
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findById(requesterId)).thenReturn(Optional.empty());
+
+        //when / then
+        assertThatThrownBy(() -> followService.acceptFollowRequest(userId, requesterId))
+                .isInstanceOf(CustomException.class)
+                .hasMessage("수락하는 사용자가 존재하지 않습니다. RequesterId: " + requesterId);
+    }
+
+    @Test
+    @DisplayName("팔로우 요청 수락 시 팔로우 대상이 존재하지 않을 경우")
+    void acceptFollowRequestNonExistUser() {
+        //given
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        //when / then
+        assertThatThrownBy(() -> followService.acceptFollowRequest(userId, requesterId))
+                .isInstanceOf(CustomException.class)
+                .hasMessage("해당 유저가 존재하지 않습니다. UserId: " + userId);
+    }
+
+    @Test
+    @DisplayName("팔로우 요청 거절 성공")
+    void rejectFollowRequestSuccess() {
+        //given
+        PendingFollow pendingFollow = PendingFollow.createFollowRequest(requester, user);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
+        when(pendingFollowRepository.findByRequesterAndTarget(requester, user)).thenReturn(Optional.of(pendingFollow));
+
+        //when
+        followService.rejectFollowRequest(userId, requesterId);
+
+        //then
+        verify(pendingFollowRepository, times(1)).delete(pendingFollow);
+    }
+
+    @Test
+    @DisplayName("팔로우 요청 거절 시 요청이 존재하지 않을 경우")
+    void rejectFollowRequestNonExistRequest() {
+        //given
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
+        when(pendingFollowRepository.findByRequesterAndTarget(requester, user)).thenReturn(Optional.empty());
+
+        //when / then
+        assertThatThrownBy(() -> followService.rejectFollowRequest(userId, requesterId))
+                .isInstanceOf(CustomException.class)
+                .hasMessage("해당 요청이 존재하지 않습니다.");
+    }
+
+    @Test
+    @DisplayName("팔로우 요청 거절 시 요청자가 존재하지 않을 경우")
+    void rejectFollowRequestNonExistRequester() {
+        //given
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findById(requesterId)).thenReturn(Optional.empty());
+
+        //when / then
+        assertThatThrownBy(() -> followService.rejectFollowRequest(userId, requesterId))
+                .isInstanceOf(CustomException.class)
+                .hasMessage("거절하는 사용자가 존재하지 않습니다. RequesterId: " + requesterId);
+    }
+
+    @Test
+    @DisplayName("팔로우 요청 거절 시 팔로우 대상이 존재하지 않을 경우")
+    void rejectFollowRequestNonExistUser() {
+        //given
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        //when / then
+        assertThatThrownBy(() -> followService.rejectFollowRequest(userId, requesterId))
+                .isInstanceOf(CustomException.class)
+                .hasMessage("해당 유저가 존재하지 않습니다. UserId: " + userId);
     }
 }
