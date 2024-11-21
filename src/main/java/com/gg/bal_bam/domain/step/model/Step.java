@@ -7,7 +7,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Getter
@@ -23,69 +23,24 @@ public class Step {
     private User user; // 사용자
 
     @Column(nullable = false)
-    private LocalDateTime date; // 날짜
+    private LocalDate date; // 날짜
 
-    private Integer totalWalkSteps; // 총 걸음 수
-    private Integer totalWalkTime; // 총 걸음 시간
+    private Integer totalWalkSteps = 0; // 총 걸음 수
+    private Long totalWalkTime = 0L; // 총 걸음 시간
 
-    private boolean isWalked = false; // 산책 여부
+    private Float goalAchievementRate = 0.0f; // 목표 달성률
 
-    private Float goalAchievementRate; // 목표 달성률
-
-    private Step(User user, LocalDateTime date, Integer totalWalkSteps, Integer totalWalkTime, boolean isWalked, Float goalAchievementRate) {
+    private Step(User user, LocalDate date) {
         this.user = user;
         this.date = date;
-        this.totalWalkSteps = totalWalkSteps;
-        this.totalWalkTime = totalWalkTime;
-        this.isWalked = isWalked;
-        this.goalAchievementRate = goalAchievementRate;
     }
 
-    public static class Builder {
-        private User user;
-        private LocalDateTime date;
-        private Integer totalWalkSteps;
-        private Integer totalWalkTime;
-        private boolean isWalked = false;
-        private Float goalAchievementRate;
-
-        public Builder user(User user) {
-            this.user = user;
-            return this;
-        }
-
-        public Builder date(LocalDateTime date) {
-            this.date = date;
-            return this;
-        }
-
-        public Builder totalWalkSteps(Integer totalWalkSteps) {
-            this.totalWalkSteps = totalWalkSteps;
-            return this;
-        }
-
-        public Builder totalWalkTime(Integer totalWalkTime) {
-            this.totalWalkTime = totalWalkTime;
-            return this;
-        }
-
-        public Builder isWalked(boolean isWalked) {
-            this.isWalked = isWalked;
-            return this;
-        }
-
-        public Builder goalAchievementRate(Float goalAchievementRate) {
-            this.goalAchievementRate = goalAchievementRate;
-            return this;
-        }
-
-        public Step build() {
-            return new Step(user, date, totalWalkSteps, totalWalkTime, isWalked, goalAchievementRate);
-        }
+    public static Step createStep(User user, LocalDate date) {
+        return new Step(user, date);
     }
 
 
-    public void updateStep(Integer totalWalkSteps, Integer totalWalkTime, boolean isWalked, Float goalAchievementRate) {
+    public void updateStep(Integer totalWalkSteps, Long totalWalkTime, Float goalAchievementRate) {
         if (totalWalkSteps != null) {
             this.totalWalkSteps = totalWalkSteps;
         }
@@ -93,8 +48,6 @@ public class Step {
         if (totalWalkTime != null) {
             this.totalWalkTime = totalWalkTime;
         }
-
-        this.isWalked = isWalked;
 
         if (goalAchievementRate != null) {
             this.goalAchievementRate = goalAchievementRate;
