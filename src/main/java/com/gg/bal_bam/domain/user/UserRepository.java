@@ -17,6 +17,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     boolean existsByUsername(String username);
     // 로그인 등
     Optional<User> findByEmail(String email);
+    Optional<User> findByUsername(String username);
 
     // 팔로우 추천 -> 랜덤 유저 목록 조회
     @Query("select u from User u where u.id != :userId and u.id not in :followedUserIds order by function('RAND')")
