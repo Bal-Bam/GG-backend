@@ -7,7 +7,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -34,8 +36,8 @@ public class Step {
     @Column(nullable = false)
     private Float goalAchievementRate = 0.0f; // 목표 달성률
 
-    @Column(nullable = false)
-    private Boolean isWalking = false; // 현재 산책 중인지 여부
+    @Column(nullable = true)
+    private LocalDateTime startTime; // 산책 시작 시간
 
     private Step(User user, LocalDate date) {
         this.user = user;
@@ -46,18 +48,24 @@ public class Step {
         return new Step(user, date);
     }
 
-    public void startWalking() {
-        if (this.isWalking) {
+    public void startWalking(LocalDateTime startTime) {
+        if (this.startTime != null) {
             throw new IllegalStateException("이미 산책 중입니다.");
         }
-        this.isWalking = true;
+        this.startTime = startTime;
     }
 
-    public void endWalking() {
-        if (!this.isWalking) {
+    public Long endWalking(LocalDateTime endTime) {
+
+
+        if (this.startTime == null) {
             throw new IllegalStateException("산책 중이 아닙니다.");
         }
-        this.isWalking = false;
+
+        Long walkTime = Duration.between(startTime, endTime).toSeconds();
+        this.startTime = null;
+
+        return walkTime;
     }
 
     public void updateStep(Integer totalWalkSteps, Long totalWalkTime, Float goalAchievementRate) {

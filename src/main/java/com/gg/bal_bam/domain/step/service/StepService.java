@@ -32,29 +32,26 @@ public class StepService {
         Step step = stepRepository.findByUserAndDate(user, today)
                 .orElseGet(() -> Step.createStep(user, today)); // 없으면 생성
 
-        step.startWalking();
+        step.startWalking(startTime);
 
-        // 캐싱으로 시작 시간 저장 구현 필요
     }
+
 
     @Transactional
     public void endWalk(UUID userId, LocalDateTime endTime) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException("해당 유저가 존재하지 않습니다. UserId: " + userId));
 
-        //캐싱을 통해 시작시간 확인해서 startTime이 존재하는지 확인하는 로직 필요
-        LocalDateTime startTime = null;
-//        if (startTime == null) {
-//            throw new CustomException("산책 시작 시간이 존재하지 않습니다.");
-//        }
-
-        //오늘의 Step 데이터 조회
-        LocalDate today = LocalDate.now();
-        Step step = stepRepository.findByUserAndDate(user, today)
+        Step step = stepRepository.findByUserAndDate(user, LocalDate.now())
                 .orElseThrow(() -> new CustomException("오늘의 Step 데이터를 찾을 수 없습니다."));
 
-        //산책 시간 및 걸음 수 계산
-        Long walkTime = Duration.between(startTime, endTime).toSeconds();
+        LocalDateTime startTime = step.getStartTime();
+        if (startTime == null) {
+            throw new CustomException("산책 시작 시간이 존재하지 않습니다.");
+        }
+
+        // 산책 시간 계산
+        Long walkTime = step.endWalking(endTime);
         Integer walkSteps = 0; // 걸음 수 계산 필요
 
         step.updateStep(
@@ -63,13 +60,14 @@ public class StepService {
                 calculateGoalAchievementRate(step.getTotalWalkSteps() + walkSteps, user.getDailyGoalSteps())
         );
 
-        step.endWalking();
-
-        // 캐싱에 있는 시작 시간 제거 구현 필요
     }
 
     // 목표 달성률 계산 메서드
     private Float calculateGoalAchievementRate(Integer totalWalkSteps, Integer goal) {
+        if (goal == null || goal == 0) {
+            return 0.0f;
+        }
+
         return (float) totalWalkSteps / goal * 100;
     }
 }
