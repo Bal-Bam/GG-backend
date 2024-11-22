@@ -30,7 +30,11 @@ public class StepService {
         //오늘의 Step 데이터 조회
         LocalDate today = LocalDate.now();
         Step step = stepRepository.findByUserAndDate(user, today)
-                .orElseGet(() -> Step.createStep(user, today)); // 없으면 생성
+                .orElseGet(() -> {
+                    Step newStep = Step.createStep(user, today);
+                    stepRepository.save(newStep);
+                    return newStep;
+                }); // 없으면 생성
 
         step.startWalking(startTime);
 
