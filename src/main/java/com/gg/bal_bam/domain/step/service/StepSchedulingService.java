@@ -5,6 +5,7 @@ import com.gg.bal_bam.domain.step.model.Step;
 import com.gg.bal_bam.domain.user.UserRepository;
 import com.gg.bal_bam.domain.user.model.User;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,7 @@ import java.util.List;
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
+@Slf4j
 public class StepSchedulingService {
 
     private final StepRepository stepRepository;
