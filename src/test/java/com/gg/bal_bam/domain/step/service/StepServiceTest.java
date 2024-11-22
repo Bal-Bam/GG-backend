@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -84,6 +85,25 @@ class StepServiceTest {
     }
 
     @Test
+    @DisplayName("산책 시작 실패: 이미 산책 중일 때")
+    void startWalkAlreadyWalking() {
+        // given
+        LocalDateTime startTime = LocalDateTime.now();
+        step = Step.createStep(user, LocalDate.now());
+
+        step.startWalking(LocalDateTime.now().minusMinutes(30));  // 30분 전 산책 시작
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(stepRepository.findByUserAndDate(user, LocalDate.now())).thenReturn(Optional.of(step));
+
+        // when / then
+        assertThatThrownBy(() -> stepService.startWalk(userId, startTime))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("이미 산책 중입니다.");
+    }
+
+
+    @Test
     @DisplayName("산책 종료 성공")
     void endWalkSuccess() {
         // given
@@ -113,12 +133,10 @@ class StepServiceTest {
         when(stepRepository.findByUserAndDate(user, LocalDate.now())).thenReturn(Optional.empty());
 
         // when / then
-        Assertions.assertThatThrownBy(() -> stepService.endWalk(userId, endTime))
+        assertThatThrownBy(() -> stepService.endWalk(userId, endTime))
                 .isInstanceOf(CustomException.class)
                 .hasMessage("오늘의 Step 데이터를 찾을 수 없습니다.");
     }
-
-
 
     @Test
     @DisplayName("산책 종료 실패: 산책 중이 아닐 때")
@@ -131,7 +149,23 @@ class StepServiceTest {
         when(stepRepository.findByUserAndDate(user, LocalDate.now())).thenReturn(Optional.of(step));
 
         // when / then
-        Assertions.assertThatThrownBy(() -> stepService.endWalk(userId, endTime))
+        assertThatThrownBy(() -> stepService.endWalk(userId, endTime))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("산책 중이 아닙니다.");
+    }
+
+    @Test
+    @DisplayName("산책")
+    void calculateWalkTimeNotWalking() {
+        //given
+        LocalDateTime endTime = LocalDateTime.now();
+        step = Step.createStep(user, LocalDate.now());
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(stepRepository.findByUserAndDate(user, LocalDate.now())).thenReturn(Optional.of(step));
+
+        // when / then
+        assertThatThrownBy(() -> stepService.endWalk(userId, endTime))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("산책 중이 아닙니다.");
     }
