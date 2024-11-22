@@ -45,19 +45,21 @@ public class StepService {
         Step step = stepRepository.findByUserAndDate(user, LocalDate.now())
                 .orElseThrow(() -> new CustomException("오늘의 Step 데이터를 찾을 수 없습니다."));
 
-        LocalDateTime startTime = step.getStartTime();
-        if (startTime == null) {
-            throw new CustomException("산책 시작 시간이 존재하지 않습니다.");
-        }
+        Long walkTime = step.calculateWalkTime(endTime); // 산책 시간 계산
+        step.endWalking();
 
         // 산책 시간 계산
-        Long walkTime = step.endWalking(endTime);
-        Integer walkSteps = 0; // 걸음 수 계산 필요
+        Integer walkSteps = 10000; // 걸음 수 계산 필요
+
+        Float goalAchievementRate = calculateGoalAchievementRate(
+                step.getTotalWalkSteps() + walkSteps, user.getDailyGoalSteps()
+        );
+
 
         step.updateStep(
                 step.getTotalWalkSteps() + walkSteps,
                 step.getTotalWalkTime() + walkTime,
-                calculateGoalAchievementRate(step.getTotalWalkSteps() + walkSteps, user.getDailyGoalSteps())
+                goalAchievementRate
         );
 
     }

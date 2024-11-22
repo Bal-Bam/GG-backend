@@ -55,17 +55,22 @@ public class Step {
         this.startTime = startTime;
     }
 
-    public Long endWalking(LocalDateTime endTime) {
+    public void endWalking() {
 
 
         if (this.startTime == null) {
             throw new IllegalStateException("산책 중이 아닙니다.");
         }
 
-        Long walkTime = Duration.between(startTime, endTime).toSeconds();
         this.startTime = null;
+    }
 
-        return walkTime;
+    public Long calculateWalkTime(LocalDateTime endTime) {
+        if (this.startTime == null) {
+            throw new IllegalStateException("산책 중이 아닙니다.");
+        }
+
+        return Duration.between(startTime, endTime).toSeconds();
     }
 
     public void updateStep(Integer totalWalkSteps, Long totalWalkTime, Float goalAchievementRate) {
