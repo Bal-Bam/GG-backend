@@ -25,10 +25,17 @@ public class Step {
     @Column(nullable = false)
     private LocalDate date; // 날짜
 
+    @Column(nullable = false)
     private Integer totalWalkSteps = 0; // 총 걸음 수
+
+    @Column(nullable = false)
     private Long totalWalkTime = 0L; // 총 걸음 시간
 
+    @Column(nullable = false)
     private Float goalAchievementRate = 0.0f; // 목표 달성률
+
+    @Column(nullable = false)
+    private Boolean isWalking = false; // 현재 산책 중인지 여부
 
     private Step(User user, LocalDate date) {
         this.user = user;
@@ -39,6 +46,19 @@ public class Step {
         return new Step(user, date);
     }
 
+    public void startWalking() {
+        if (this.isWalking) {
+            throw new IllegalStateException("이미 산책 중입니다.");
+        }
+        this.isWalking = true;
+    }
+
+    public void endWalking() {
+        if (!this.isWalking) {
+            throw new IllegalStateException("산책 중이 아닙니다.");
+        }
+        this.isWalking = false;
+    }
 
     public void updateStep(Integer totalWalkSteps, Long totalWalkTime, Float goalAchievementRate) {
         if (totalWalkSteps != null) {
