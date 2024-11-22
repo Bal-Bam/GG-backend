@@ -31,4 +31,11 @@ public class StepSchedulingService {
                     .orElseGet(() -> stepRepository.save(Step.createStep(user, today)));
         }
     }
+
+    @Transactional
+    @Scheduled(cron = "0 0 1 1 * *")
+    public void deleteOldSteps() {
+        LocalDate cutoffDate = LocalDate.now().minusMonths(1).withDayOfMonth(1);
+        stepRepository.deleteStepsOlderThan(cutoffDate);
+    }
 }
