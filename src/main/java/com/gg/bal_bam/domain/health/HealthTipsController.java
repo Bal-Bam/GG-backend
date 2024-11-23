@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/health")
 public class HealthTipsController {
 
-    private final HealthTipsAiService healthTipsAiService;
+    private final HealthTipsService healthTipsService;
 
     @GetMapping("/tips")
     public ResponseTemplate<String> getHealthTip() {
-        return ResponseTemplate.ok(healthTipsAiService.generateHealthTip());
+        return ResponseTemplate.ok(healthTipsService.generateHealthTip());
     }
 }

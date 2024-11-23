@@ -1,6 +1,5 @@
 package com.gg.bal_bam.domain.health;
 
-import com.theokanning.openai.completion.CompletionRequest;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.service.OpenAiService;
@@ -13,7 +12,7 @@ import java.util.Collections;
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class HealthTipsAiService {
+public class HealthTipsService {
 
     private final OpenAiService openAiService;
 
