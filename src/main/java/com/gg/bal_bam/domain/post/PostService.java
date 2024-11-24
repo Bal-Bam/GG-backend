@@ -11,6 +11,8 @@ import com.gg.bal_bam.domain.user.dto.TaggedUserRequest;
 import com.gg.bal_bam.domain.user.model.User;
 import com.gg.bal_bam.exception.CustomException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -67,10 +69,11 @@ public class PostService {
                 postRequest.getLongitude()
         );
 
-        postRepository.save(post);
-
         //태그 사용자 처리 코드
         processTaggedUsers(post, postRequest.getTaggedUsers());
+
+        postRepository.save(post);
+
     }
 
     // 게시글 수정
@@ -88,9 +91,10 @@ public class PostService {
 
         post.updatePost(postUpdateRequest.getContent());
 
+        processTaggedUsers(post, postUpdateRequest.getTaggedUsers());
+
         //태그 사용자 처리 코드: 기존 태그 사용자 삭제 후 추가
         postTagRepository.deleteByPost(post);
-        processTaggedUsers(post, postUpdateRequest.getTaggedUsers());
     }
 
     private void processTaggedUsers(Post post, List<TaggedUserRequest> taggedUsers) {
@@ -114,7 +118,7 @@ public class PostService {
 
         // 작성자인지 확인
         if (!post.getUser().getId().equals(userId)) {
-            throw new CustomException("게시글 작성자만 삭제할 수 있습니다. 작성자 ID: " + userId);
+            throw new CustomException("게시글 작성자만 삭제할 수 있습니다. 요청자 ID: " + userId + ", 작성자 ID: " + post.getUser().getId());
         }
 
         //관련 태그 삭제
@@ -139,7 +143,7 @@ public class PostService {
     }
 
     // 피드 조회
-    public List<PostListResponse> getFeed(PostListRequest postListRequest, UUID userId) {
+    public Page<PostListResponse> getFeed(PostListRequest postListRequest, UUID userId) {
 
         // 팔로우한 사용자 ID 목록 조회
         List<UUID> followedUserIds = followRepository.findFollowedIdByFollowerId(userId);
@@ -147,9 +151,9 @@ public class PostService {
         Pageable pageable = PageRequest.of(postListRequest.getOffset(), postListRequest.getLimit());
 
         // 팔로우한 사용자들의 게시글 목록 조회
-        List<Post> followedUserPosts = postRepository.findPostsByUserIds(followedUserIds, pageable);
+        Page<Post> followedUserPosts = postRepository.findPostsByUserIds(followedUserIds, pageable);
 
-        List<Post> nearbyPosts = postRepository.findNearbyPosts(
+        Page<Post> nearbyPosts = postRepository.findNearbyPosts(
                 postListRequest.getLatitude(),
                 postListRequest.getLongitude(),
                 3000.0,
@@ -162,8 +166,13 @@ public class PostService {
                 .limit(postListRequest.getLimit())
                 .toList();
 
-        return feedPosts.stream()
-                .map(post -> PostListResponse.of(post, postTagRepository.findByPost(post)))
-                .toList();
+        return new PageImpl<>(
+                feedPosts.stream()
+                        .map(post -> PostListResponse.of(post, postTagRepository.findByPost(post)))
+                        .toList(),
+                pageable,
+                feedPosts.size()
+        );
+
     }
 }

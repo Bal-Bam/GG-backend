@@ -1,6 +1,7 @@
 package com.gg.bal_bam.domain.follow;
 
 import com.gg.bal_bam.domain.follow.dto.FollowListResponse;
+import com.gg.bal_bam.domain.follow.dto.PendingFollowResponse;
 import com.gg.bal_bam.domain.follow.dto.FollowResponse;
 import com.gg.bal_bam.domain.follow.model.Follow;
 import com.gg.bal_bam.domain.follow.model.PendingFollow;
@@ -10,7 +11,7 @@ import com.gg.bal_bam.domain.user.UserRepository;
 import com.gg.bal_bam.domain.user.model.User;
 import com.gg.bal_bam.exception.CustomException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -74,14 +75,51 @@ public class FollowService {
         return FollowResponse.of(followingId, false, false);
     }
 
-    public List<FollowListResponse> getFollowRecommendList(UUID userId, Pageable pageable) {
+    public Page<FollowListResponse> getFollowRecommendList(UUID userId, Pageable pageable) {
 
         List<UUID> followingUserIds = followRepository.findFollowedIdByFollowerId(userId);
 
-        List<User> recommendUsers = userRepository.findRandomUsers(userId, followingUserIds, pageable);
+        Page<User> recommendUsers = userRepository.findRandomUsers(userId, followingUserIds, pageable);
 
-        return recommendUsers.stream()
-                .map(user -> FollowListResponse.of(user.getId(), user.getUsername(), user.getProfileImage(), followingUserIds.contains(user.getId())))
-                .toList();
+        return recommendUsers.map(user -> FollowListResponse.of(
+                user.getId(),
+                user.getUsername(),
+                user.getProfileImage(),
+                followingUserIds.contains(user.getId())
+        ));
+    }
+
+    public PendingFollowResponse acceptFollowRequest(UUID userId, UUID requesterId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException("해당 유저가 존재하지 않습니다. UserId: " + userId));
+
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new CustomException("수락하는 사용자가 존재하지 않습니다. RequesterId: " + requesterId));
+
+        PendingFollow pendingFollow = pendingFollowRepository.findByRequesterAndTarget(requester, user)
+                .orElseThrow(() -> new CustomException("해당 요청이 존재하지 않습니다."));
+
+        Follow follow = Follow.createFollow(requester, user);
+        followRepository.save(follow);
+
+        pendingFollowRepository.delete(pendingFollow);
+
+        return PendingFollowResponse.of(requesterId);
+    }
+
+    public void rejectFollowRequest(UUID userId, UUID requesterId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException("해당 유저가 존재하지 않습니다. UserId: " + userId));
+
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new CustomException("거절하는 사용자가 존재하지 않습니다. RequesterId: " + requesterId));
+
+        PendingFollow pendingFollow = pendingFollowRepository.findByRequesterAndTarget(requester, user)
+                .orElseThrow(() -> new CustomException("해당 요청이 존재하지 않습니다."));
+
+        pendingFollowRepository.delete(pendingFollow);
+
     }
 }
