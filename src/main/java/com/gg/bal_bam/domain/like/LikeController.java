@@ -31,7 +31,7 @@ public class LikeController {
     public ResponseTemplate<LikeResponse> likePost(
             @PathVariable Long postId
     ) {
-        UUID userId = null;
+        UUID userId = UUID.fromString("a8a73cde-cbc1-48dc-91cb-93c1ba8fe8c2");
         return ResponseTemplate.ok(likeService.like(postId, userId));
     }
 }
