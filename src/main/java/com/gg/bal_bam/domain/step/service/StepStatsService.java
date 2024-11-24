@@ -60,10 +60,10 @@ public class StepStatsService {
                 .orElseThrow(() -> new CustomException("해당 유저가 존재하지 않습니다. UserId: " + userId));
 
         LocalDate thisMonthStart = thisMonth.withDayOfMonth(1);
-        LocalDate thisMonthEnd = thisMonth;
+        LocalDate thisMonthEnd = thisMonth.withDayOfMonth(thisMonth.lengthOfMonth());
 
-        LocalDate lastMonthStart = thisMonth.withDayOfMonth(1);
-        LocalDate lastMonthEnd = thisMonth.withDayOfMonth(lastMonth.lengthOfMonth());
+        LocalDate lastMonthStart = lastMonth.withDayOfMonth(1);
+        LocalDate lastMonthEnd = lastMonth.withDayOfMonth(lastMonth.lengthOfMonth());
 
         int thisMonthGoals = stepRepository.countGoalAchievedDays(user, thisMonthStart, thisMonthEnd);
         int lastMonthGoals = stepRepository.countGoalAchievedDays(user, lastMonthStart, lastMonthEnd);
