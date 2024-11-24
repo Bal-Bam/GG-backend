@@ -12,6 +12,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @Tag(name = "Post", description = "게시글 API")
 @RestController
 @RequiredArgsConstructor
@@ -31,7 +33,8 @@ public class PostController {
             @Validated @RequestBody PostRequest postRequest
             //, userid 필요
     ) {
-        postService.createPost(postRequest, null);
+        UUID userId = UUID.fromString("a8a73cde-cbc1-48dc-91cb-93c1ba8fe8c2");
+        postService.createPost(postRequest, userId);
         return ResponseTemplate.ok();
     }
 
@@ -47,7 +50,8 @@ public class PostController {
             @Validated @RequestBody PostUpdateRequest postUpdateRequest
             //, userid 필요
     ) {
-        postService.updatePost(postId, postUpdateRequest, null);
+        UUID userId = UUID.fromString("a8a73cde-cbc1-48dc-91cb-93c1ba8fe8c2");
+        postService.updatePost(postId, postUpdateRequest, userId);
         return ResponseTemplate.ok();
     }
 
@@ -62,7 +66,9 @@ public class PostController {
             @PathVariable Long postId
             //, userid 필요
     ) {
-        postService.deletePost(postId, null);
+        UUID userId = UUID.fromString("a8a73cde-cbc1-48dc-91cb-93c1ba8fe8c2");
+
+        postService.deletePost(postId, userId);
         return ResponseTemplate.ok();
     }
 
@@ -90,7 +96,9 @@ public class PostController {
             @Validated @RequestBody PostListRequest postListRequest
             //, userid 필요
     ) {
+        UUID userId = UUID.fromString("a8a73cde-cbc1-48dc-91cb-93c1ba8fe8c2");
+
         Pageable pageable = PageRequest.of(postListRequest.getOffset(), postListRequest.getLimit());
-        return ResponseTemplate.ok(postService.getFeed(postListRequest, null, pageable));
+        return ResponseTemplate.ok(postService.getFeed(postListRequest, userId, pageable));
     }
 }
