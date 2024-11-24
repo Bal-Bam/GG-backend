@@ -31,11 +31,13 @@ public class FollowController {
     )
     @PostMapping("/{targetUserId}")
     public ResponseTemplate<FollowResponse> follow(
-            @Parameter(description = "팔로우 대상 유저 ID", example = "123e4567-e89b-12d3-a456-426614174000")
+            @Parameter(description = "팔로우 대상 유저 ID", example = "4ee3b4d7-2ac6-48ab-bda7-1a204b86d631")
             @PathVariable UUID targetUserId
             // userId 추가
     ) {
-        return ResponseTemplate.ok(followService.follow(targetUserId, null));
+        UUID userId = UUID.fromString("a8a73cde-cbc1-48dc-91cb-93c1ba8fe8c2");
+
+        return ResponseTemplate.ok(followService.follow(userId, targetUserId));
     }
 
     @Operation(summary = "언팔로우", description = "팔로우를 취소합니다.")
@@ -46,11 +48,13 @@ public class FollowController {
     )
     @DeleteMapping("/{targetUserId}")
     public ResponseTemplate<FollowResponse> unfollow(
-            @Parameter(description = "언팔로우 대상 유저 ID", example = "123e4567-e89b-12d3-a456-426614174000")
+            @Parameter(description = "언팔로우 대상 유저 ID", example = "4ee3b4d7-2ac6-48ab-bda7-1a204b86d631")
             @PathVariable UUID targetUserId
             // userId 추가
     ) {
-        return ResponseTemplate.ok(followService.unfollow(targetUserId, null));
+        UUID userId = UUID.fromString("a8a73cde-cbc1-48dc-91cb-93c1ba8fe8c2");
+
+        return ResponseTemplate.ok(followService.unfollow(targetUserId, userId));
     }
 
     @Operation(summary = "팔로우 추천 목록 조회", description = "팔로우 추천 목록을 조회합니다.")
@@ -65,7 +69,10 @@ public class FollowController {
             @RequestParam(required = false, defaultValue = "10") int limit
             //userId 추가
     ) {
+
+        UUID userId = UUID.fromString("a8a73cde-cbc1-48dc-91cb-93c1ba8fe8c2");
+
         Pageable pageable = PageRequest.of(offset, limit);
-        return ResponseTemplate.ok(followService.getFollowRecommendList(null, pageable));
+        return ResponseTemplate.ok(followService.getFollowRecommendList(userId, pageable));
     }
 }
