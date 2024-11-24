@@ -11,14 +11,12 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Tag(name = "Step API", description = "산책을 시작, 종료하고 통계를 조회하는 API를 제공합니다")
 @RestController
@@ -39,7 +37,10 @@ public class StepController {
     public ResponseTemplate<Void> startWalk(
             //userId
     ) {
-        stepService.startWalk(null, LocalDateTime.now());
+
+        UUID userId = UUID.fromString("a8a73cde-cbc1-48dc-91cb-93c1ba8fe8c2");
+
+        stepService.startWalk(userId, LocalDateTime.now());
         return ResponseTemplate.ok();
     }
 
@@ -54,7 +55,9 @@ public class StepController {
     public ResponseTemplate<Void> endWalk(
             //userId
     ) {
-        stepService.endWalk(null, LocalDateTime.now());
+        UUID userId = UUID.fromString("a8a73cde-cbc1-48dc-91cb-93c1ba8fe8c2");
+
+        stepService.endWalk(userId, LocalDateTime.now());
         return ResponseTemplate.ok();
     }
 
@@ -64,11 +67,14 @@ public class StepController {
             description = "일별 통계 조회 성공",
             useReturnTypeSchema = true
     )
-    @PostMapping("/daily")
+    @GetMapping("/daily")
     public ResponseTemplate<DailyResponse> getDailyStats(
             //userId, date
     ) {
-        return ResponseTemplate.ok(stepStatsService.getDailyStats(null, LocalDate.now()));
+
+        UUID userId = UUID.fromString("a8a73cde-cbc1-48dc-91cb-93c1ba8fe8c2");
+
+        return ResponseTemplate.ok(stepStatsService.getDailyStats(userId, LocalDate.now()));
     }
 
     @Operation(summary = "주간 통계 조회", description = "특정 기간의 주간 산책 통계를 조회합니다")
@@ -77,16 +83,19 @@ public class StepController {
             description = "주간 통계 조회 성공",
             useReturnTypeSchema = true
     )
-    @PostMapping("/weekly")
+    @GetMapping("/weekly")
     public ResponseTemplate<WeeklyResponse> getWeeklyStats(
-            //userId
-            @RequestParam LocalDate startDate,
-            @RequestParam LocalDate endDate
+//            //userId
+//            @RequestParam LocalDate startDate,
+//            @RequestParam LocalDate endDate
     ) {
-        LocalDate start = startDate == null ? startDate : LocalDate.now().with(DayOfWeek.MONDAY);
-        LocalDate end = endDate == null ? endDate : start.plusDays(6);
 
-        return ResponseTemplate.ok(stepStatsService.getWeeklyStats(null, start, end));
+        UUID userId = UUID.fromString("a8a73cde-cbc1-48dc-91cb-93c1ba8fe8c2");
+
+        LocalDate start = LocalDate.now().with(DayOfWeek.MONDAY);
+        LocalDate end = start.plusDays(6);
+
+        return ResponseTemplate.ok(stepStatsService.getWeeklyStats(userId, start, end));
     }
 
     @Operation(summary = "월별 통계 조회", description = "특정 기간의 월별 산책 통계를 조회합니다")
@@ -95,12 +104,15 @@ public class StepController {
             description = "월별 통계 조회 성공",
             useReturnTypeSchema = true
     )
-    @PostMapping("/monthly")
+    @GetMapping("/monthly")
     public ResponseTemplate<MonthlyResponse> getMonthlyStats(
             //userId
             @RequestParam @Parameter(description = "이번 달 기준일", example = "2024-11-01") LocalDate thisMonth
     ) {
+
+        UUID userId = UUID.fromString("a8a73cde-cbc1-48dc-91cb-93c1ba8fe8c2");
+
         LocalDate lastMonth = thisMonth == null ? thisMonth : thisMonth.minusMonths(1);
-        return ResponseTemplate.ok(stepStatsService.getMonthlyStats(null, thisMonth, lastMonth));
+        return ResponseTemplate.ok(stepStatsService.getMonthlyStats(userId, thisMonth, lastMonth));
     }
 }
