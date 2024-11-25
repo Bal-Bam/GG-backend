@@ -19,7 +19,7 @@ public class HealthTipsService {
     public String generateHealthTip() {
 
         ChatMessage systemMessage = new ChatMessage("systme", "간단한 한 줄 정도의 오늘의 건강 팁을 제시해줘.)");
-        ChatMessage userMessage = new ChatMessage("user", "오늘의 건강 팁을 정말 간단하게 알려줘.");
+        ChatMessage userMessage = new ChatMessage("user", "간단한 한 줄 정도의 오늘의 건강 팁을 제시해줘. 너무 흔하지 않은 내용이면 좋겠어.");
 
         // api 요청
         ChatCompletionRequest request = ChatCompletionRequest.builder()
