@@ -128,6 +128,7 @@ class StepServiceTest {
     void endWalkStepNotFound() {
         // given
         LocalDateTime endTime = LocalDateTime.now();
+        step = Step.createStep(user, LocalDate.now());
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(stepRepository.findByUserAndDate(user, LocalDate.now())).thenReturn(Optional.empty());
@@ -144,6 +145,7 @@ class StepServiceTest {
         // given
         LocalDateTime endTime = LocalDateTime.now();
         step = Step.createStep(user, LocalDate.now());
+        ReflectionTestUtils.setField(step, "startTime", null);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(stepRepository.findByUserAndDate(user, LocalDate.now())).thenReturn(Optional.of(step));
@@ -168,5 +170,33 @@ class StepServiceTest {
         assertThatThrownBy(() -> stepService.endWalk(userId, endTime))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("산책 중이 아닙니다.");
+    }
+
+    @Test
+    @DisplayName("목표 달성률 계산 성공")
+    void calculateAchievementRateSuccess() {
+        // given
+        Integer totalWalkSteps = 10000; // 임의의 걸음 수
+        Integer goal = 0; // 목표가 0인 경우
+
+        // when
+        Float result = ReflectionTestUtils.invokeMethod(stepService, "calculateGoalAchievementRate", totalWalkSteps, goal);
+
+        // then
+        assertThat(result).isEqualTo(0.0f);
+    }
+
+    @Test
+    @DisplayName("목표 달성률 계산 성공: 정상적인 값")
+    void calculateGoalAchievementRateNormalCase() {
+        // given
+        Integer totalWalkSteps = 5000;
+        Integer goal = 10000;
+
+        // when
+        Float result = ReflectionTestUtils.invokeMethod(stepService, "calculateGoalAchievementRate", totalWalkSteps, goal);
+
+        // then
+        assertThat(result).isEqualTo(50.0f);
     }
 }
