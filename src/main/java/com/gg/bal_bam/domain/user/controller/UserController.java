@@ -2,6 +2,7 @@ package com.gg.bal_bam.domain.user.controller;
 
 import com.gg.bal_bam.common.ResponseTemplate;
 import com.gg.bal_bam.domain.user.dto.*;
+import com.gg.bal_bam.domain.user.model.User;
 import com.gg.bal_bam.domain.user.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,6 +38,12 @@ public class UserController {
 
         userService.registerUser(email, username, password);
         return ResponseTemplate.ok(null, "회원가입이 완료되었습니다.");
+    }
+
+    @PostMapping("/login")
+    public ResponseTemplate<LoginResponse> login(@RequestBody LoginRequest request) {
+        LoginResponse loginResponse = userService.login(request);
+        return ResponseTemplate.ok(loginResponse);
     }
 
 }
