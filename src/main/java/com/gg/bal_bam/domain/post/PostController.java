@@ -96,7 +96,7 @@ public class PostController {
             @Validated @RequestBody PostListRequest postListRequest
             //, userid 필요
     ) {
-        UUID userId = UUID.fromString("a8a73cde-cbc1-48dc-91cb-93c1ba8fe8c2");
+        UUID userId = UUID.fromString("4ee3b4d7-2ac6-48ab-bda7-1a204b86d631");
 
         Pageable pageable = PageRequest.of(postListRequest.getOffset(), postListRequest.getLimit());
         return ResponseTemplate.ok(postService.getFeed(postListRequest, userId, pageable));
