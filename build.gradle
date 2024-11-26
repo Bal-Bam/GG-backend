@@ -69,7 +69,10 @@ jacocoTestReport {
 					'**/*InitData*',
 					'**/*Application*',
 					'**/exception/**',
-					'**/config/**'
+					'**/config/**',
+					'**/controller/**',
+					'**/domain/**/*Controller.class', // domain 하위의 모든 *Controller 제외
+					'**/health/**'
 			])
 		}))
 	}

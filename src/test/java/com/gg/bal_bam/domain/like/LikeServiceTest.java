@@ -6,8 +6,10 @@ import com.gg.bal_bam.domain.post.model.Post;
 import com.gg.bal_bam.domain.post.repository.PostRepository;
 import com.gg.bal_bam.domain.user.UserRepository;
 import com.gg.bal_bam.domain.user.model.User;
+import com.gg.bal_bam.exception.CustomException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -49,6 +51,7 @@ class LikeServiceTest {
     }
 
     @Test
+    @DisplayName("좋아요 성공")
     void like() {
 
         //given
@@ -68,6 +71,7 @@ class LikeServiceTest {
     }
 
     @Test
+    @DisplayName("좋아요 취소 성공")
     void toggleLike() {
 
         //given
@@ -85,5 +89,32 @@ class LikeServiceTest {
         assertThat(response.getPostId()).isEqualTo(postId);
         assertThat(response.isLiked()).isFalse();
         assertThat(response.getLikeCount()).isEqualTo(0L);
+    }
+
+    @Test
+    @DisplayName("좋아요 실패 - 유저가 존재하지 않음")
+    void likeUserNotFound() {
+
+        //given
+        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        //when / then
+        assertThatThrownBy(() -> likeService.like(postId, userId))
+                .isInstanceOf(CustomException.class)
+                .hasMessage("해당 유저가 존재하지 않습니다. UserId: " + userId);
+    }
+
+    @Test
+    @DisplayName("좋아요 실패 - 포스트가 존재하지 않음")
+    void likePostNotFound() {
+
+        //given
+        when(postRepository.findById(postId)).thenReturn(Optional.empty());
+
+        //when / then
+        assertThatThrownBy(() -> likeService.like(postId, userId))
+                .isInstanceOf(CustomException.class)
+                .hasMessage("해당 게시글이 존재하지 않습니다. PostId: " + postId);
     }
 }

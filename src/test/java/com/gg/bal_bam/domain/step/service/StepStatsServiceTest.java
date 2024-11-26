@@ -89,6 +89,18 @@ class StepStatsServiceTest {
     }
 
     @Test
+    @DisplayName("일별 통계 조회 실패: User가 존재하지 않음")
+    void getDailyStatsUserNotFound() {
+        // given
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        // when / then
+        assertThatThrownBy(() -> stepStatsService.getDailyStats(userId, today))
+                .isInstanceOf(CustomException.class)
+                .hasMessage("해당 유저가 존재하지 않습니다. UserId: " + userId);
+    }
+
+    @Test
     @DisplayName("주간 통계 조회 성공")
     void geetWeeklyStatsSuccess() {
         // given
@@ -116,6 +128,21 @@ class StepStatsServiceTest {
     }
 
     @Test
+    @DisplayName("주간 통계 조회 실패: User가 존재하지 않음")
+    void getWeeklyStatsUserNotFound() {
+        // given
+        LocalDate startDate = today.minusDays(7);
+        LocalDate endDate = today;
+
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        // when / then
+        assertThatThrownBy(() -> stepStatsService.getWeeklyStats(userId, startDate, endDate))
+                .isInstanceOf(CustomException.class)
+                .hasMessage("해당 유저가 존재하지 않습니다. UserId: " + userId);
+    }
+
+    @Test
     @DisplayName("월간 통계 조회 성공")
     void getMonthlyStatsSuccess() {
         //given
@@ -134,5 +161,20 @@ class StepStatsServiceTest {
         assertThat(response.getLastMonthAchievementRate()).isGreaterThan(0f);
         verify(userRepository, times(1)).findById(userId);
         verify(stepRepository, times(2)).countGoalAchievedDays(eq(user), any(LocalDate.class), any(LocalDate.class));
+    }
+
+    @Test
+    @DisplayName("월간 통계 조회 실패: User가 존재하지 않음")
+    void getMonthlyStatsUserNotFound() {
+        // given
+        LocalDate thisMonth = LocalDate.now().withDayOfMonth(15);
+        LocalDate lastMonth = thisMonth.minusMonths(1).withDayOfMonth(15);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        // when / then
+        assertThatThrownBy(() -> stepStatsService.getMonthlyStats(userId, thisMonth, lastMonth))
+                .isInstanceOf(CustomException.class)
+                .hasMessage("해당 유저가 존재하지 않습니다. UserId: " + userId);
     }
 }
