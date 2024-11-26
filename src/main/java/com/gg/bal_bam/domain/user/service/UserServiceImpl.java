@@ -1,6 +1,9 @@
 package com.gg.bal_bam.domain.user.service;
 
 import com.gg.bal_bam.domain.user.UserRepository;
+import com.gg.bal_bam.domain.user.dto.LoginRequest;
+import com.gg.bal_bam.domain.user.dto.LoginResponse;
+import com.gg.bal_bam.domain.user.dto.UserResponse;
 import com.gg.bal_bam.domain.user.model.*;
 import com.gg.bal_bam.exception.CustomException;
 import lombok.RequiredArgsConstructor;
@@ -30,18 +33,18 @@ public class UserServiceImpl implements UserService {
 
     // 일반 로그인
     @Override
-    public User authenticateUser(String identifier, String password) {
-        // 이메일 또는 유저네임으로 사용자 조회
-        User user = isEmail(identifier)
-                ? userRepository.findByEmail(identifier).orElse(null)
-                : userRepository.findByUsername(identifier).orElse(null);
+    public LoginResponse login(LoginRequest request) {
+        // 사용자 조회
+        User user = isEmail(request.getIdentifier())
+                ? userRepository.findByEmail(request.getIdentifier()).orElseThrow(() -> new CustomException("사용자를 찾을 수 없습니다."))
+                : userRepository.findByUsername(request.getIdentifier()).orElseThrow(() -> new CustomException("사용자를 찾을 수 없습니다."));
 
-        // 비밀번호 확인
-        if (user == null || !passwordEncoder.matches(password, user.getPassword())) {
+        // 비밀번호 검증
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new CustomException("비밀번호가 일치하지 않습니다.");
         }
 
-        return user;
+        return LoginResponse.of(user);
     }
 
     public void validateEmail(String email) {
