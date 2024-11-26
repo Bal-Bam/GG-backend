@@ -41,32 +41,15 @@ public class AuthToken {
     }
 
     public boolean validate() {
-        try {
-            Claims claims = this.getTokenClaims();
-            return claims != null && !claims.getExpiration().before(new Date());
-        } catch (Exception e) {
-            return false;
-        }
+        Claims claims = this.getTokenClaims();
+        return claims != null && !claims.getExpiration().before(new Date());
     }
 
     public Claims getTokenClaims() {
-        try {
-            return Jwts.parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-        } catch (SecurityException e) {
-            log.error("Invalid JWT signature: {}", e.getMessage());
-        } catch (MalformedJwtException e) {
-            log.error("Invalid JWT token: {}", e.getMessage());
-        } catch (ExpiredJwtException e) {
-            log.error("Expired JWT token: {}", e.getMessage());
-        } catch (UnsupportedJwtException e) {
-            log.error("Unsupported JWT token: {}", e.getMessage());
-        } catch (IllegalArgumentException e) {
-            log.error("JWT claims string is empty: {}", e.getMessage());
-        }
-        return null;
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 }

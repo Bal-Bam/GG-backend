@@ -60,13 +60,6 @@ public class User extends BaseTimeEntity {
         return new User(email, password, username, AuthProvider.LOCAL);
     }
 
-    // 소셜 로그인
-    public static User createSocialUser(String email, String username, AuthProvider provider, String providerId) {
-        User user = new User(email, null, username, provider); // password는 null
-        user.providerId = providerId;
-        return user;
-    }
-
     // 회원정보 수정
     public void updateProfile(String username, String profileImage, String description, Integer dailyGoalSteps, Boolean isPrivate) {
         if (username == null || username.isBlank()) {
@@ -78,19 +71,19 @@ public class User extends BaseTimeEntity {
         this.isPrivate = isPrivate;
     }
 
-    // 비밀번호 변경
-    public void changePassword(String currentPassword, String newPassword) {
-        // 비밀번호가 null인지 확인
-        if (currentPassword == null || newPassword == null) {
-            throw new IllegalArgumentException("값이 null");
-        }
-
-        // 현재 비밀번호가 일치하는지 확인
-        if (!this.password.equals(currentPassword)) {
-            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다");
-        }
-
-        // 새 비밀번호 설정
-        this.password = newPassword;
-    }
+//    // 비밀번호 변경
+//    public void changePassword(String currentPassword, String newPassword) {
+//        // 비밀번호가 null인지 확인
+//        if (currentPassword == null || newPassword == null) {
+//            throw new IllegalArgumentException("값이 null");
+//        }
+//
+//        // 현재 비밀번호가 일치하는지 확인
+//        if (!this.password.equals(currentPassword)) {
+//            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다");
+//        }
+//
+//        // 새 비밀번호 설정
+//        this.password = newPassword;
+//    }
 }
