@@ -60,6 +60,16 @@ public class PostService {
 
         }
 
+        // 태그된 사용자 검증
+        if (postRequest.getTaggedUsers() != null) {
+            for (TaggedUserRequest taggedUserRequest : postRequest.getTaggedUsers()) {
+                userRepository.findById(taggedUserRequest.getUserId()).orElseThrow(
+                        () -> new CustomException("태그된 사용자가 존재하지 않습니다. 사용자 ID: " + taggedUserRequest.getUserId())
+                );
+            }
+        }
+
+
         Post post = Post.createPost(
                 user,
                 parentPost,
@@ -68,12 +78,10 @@ public class PostService {
                 postRequest.getLatitude(),
                 postRequest.getLongitude()
         );
+        postRepository.save(post);
 
         //태그 사용자 처리 코드
         processTaggedUsers(post, postRequest.getTaggedUsers());
-
-        postRepository.save(post);
-
     }
 
     // 게시글 수정
@@ -89,12 +97,23 @@ public class PostService {
             throw new CustomException("게시글 작성자만 수정할 수 있습니다.");
         }
 
-        post.updatePost(postUpdateRequest.getContent());
+        // 태그된 사용자 검증
+        if (postUpdateRequest.getTaggedUsers() != null) {
+            for (TaggedUserRequest taggedUserRequest : postUpdateRequest.getTaggedUsers()) {
+                userRepository.findById(taggedUserRequest.getUserId()).orElseThrow(
+                        () -> new CustomException("태그된 사용자가 존재하지 않습니다. 사용자 ID: " + taggedUserRequest.getUserId())
+                );
+            }
+        }
 
-        processTaggedUsers(post, postUpdateRequest.getTaggedUsers());
+
+        post.updatePost(postUpdateRequest.getContent());
 
         //태그 사용자 처리 코드: 기존 태그 사용자 삭제 후 추가
         postTagRepository.deleteByPost(post);
+
+        processTaggedUsers(post, postUpdateRequest.getTaggedUsers());
+
     }
 
     private void processTaggedUsers(Post post, List<TaggedUserRequest> taggedUsers) {
@@ -143,12 +162,10 @@ public class PostService {
     }
 
     // 피드 조회
-    public Page<PostListResponse> getFeed(PostListRequest postListRequest, UUID userId) {
+    public Page<PostListResponse> getFeed(PostListRequest postListRequest, UUID userId, Pageable pageable) {
 
         // 팔로우한 사용자 ID 목록 조회
         List<UUID> followedUserIds = followRepository.findFollowedIdByFollowerId(userId);
-
-        Pageable pageable = PageRequest.of(postListRequest.getOffset(), postListRequest.getLimit());
 
         // 팔로우한 사용자들의 게시글 목록 조회
         Page<Post> followedUserPosts = postRepository.findPostsByUserIds(followedUserIds, pageable);

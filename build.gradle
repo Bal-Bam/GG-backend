@@ -50,11 +50,16 @@ dependencies {
 	// 자동 리로드
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
+	//OpenAI
+	implementation 'com.theokanning.openai-gpt3-java:service:0.14.0'
+
+
 	// Test 의존성
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
+
 
 jacoco {
 	toolVersion = "0.8.12"
@@ -81,7 +86,6 @@ jacocoTestReport {
 					'**/*InitData*',
 					'**/*Application*',
 					'**/exception/**',
-					'**/config/**'
 			])
 		}))
 	}

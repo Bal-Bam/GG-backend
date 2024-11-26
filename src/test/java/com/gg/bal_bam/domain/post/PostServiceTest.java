@@ -277,7 +277,7 @@ class PostServiceTest {
         when(postRepository.findNearbyPosts(postListRequest.getLatitude(), postListRequest.getLongitude(), 3000.0, pageable)).thenReturn(nearbyPosts);
 
         // when
-        Page<PostListResponse> feed = postService.getFeed(postListRequest, userId);
+        Page<PostListResponse> feed = postService.getFeed(postListRequest, userId, pageable);
 
         // then
         assertThat(feed).isNotNull();
