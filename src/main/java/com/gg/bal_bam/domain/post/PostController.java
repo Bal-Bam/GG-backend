@@ -91,7 +91,7 @@ public class PostController {
             description = "피드 조회 성공",
             useReturnTypeSchema = true
     )
-    @GetMapping("/feed")
+    @PostMapping("/feed")
     public ResponseTemplate<Page<PostListResponse>> getFeed(
             @Validated @RequestBody PostListRequest postListRequest
             //, userid 필요
