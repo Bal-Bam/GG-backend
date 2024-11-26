@@ -11,6 +11,8 @@ import com.gg.bal_bam.domain.user.dto.TaggedUserRequest;
 import com.gg.bal_bam.domain.user.model.User;
 import com.gg.bal_bam.exception.CustomException;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -28,6 +30,7 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class PostService {
 
+    private static final Logger log = LoggerFactory.getLogger(PostService.class);
     private final PostRepository postRepository;
     private final PostTagRepository postTagRepository;
     private final UserRepository userRepository;
@@ -167,8 +170,12 @@ public class PostService {
         // 팔로우한 사용자 ID 목록 조회
         List<UUID> followedUserIds = followRepository.findFollowedIdByFollowerId(userId);
 
+        log.debug("followedUserIds: {}", followedUserIds);
+
         // 팔로우한 사용자들의 게시글 목록 조회
         Page<Post> followedUserPosts = postRepository.findPostsByUserIds(followedUserIds, pageable);
+
+        log.debug("followedUserPosts: {}", followedUserPosts);
 
         Page<Post> nearbyPosts = postRepository.findNearbyPosts(
                 postListRequest.getLatitude(),
@@ -177,11 +184,16 @@ public class PostService {
                 pageable
         );
 
+        log.debug("nearbyPosts: {}", nearbyPosts);
+
         List<Post> feedPosts = Stream.concat(followedUserPosts.stream(), nearbyPosts.stream())
+                .filter(post -> post.getCreatedAt() != null)
                 .distinct()
                 .sorted(Comparator.comparing(Post::getCreatedAt).reversed())
                 .limit(postListRequest.getLimit())
                 .toList();
+
+        log.debug("feedPosts: {}", feedPosts);
 
         return new PageImpl<>(
                 feedPosts.stream()
