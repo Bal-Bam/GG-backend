@@ -1,0 +1,122 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.3.5'
+	id 'io.spring.dependency-management' version '1.1.6'
+	id 'jacoco'
+}
+
+group = 'com.gg'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	// Spring Boot 기본 의존성
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+
+	// Swagger
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2'
+
+	// OAuth 2.0 + JWT
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+	// Lombok
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	// Database
+	runtimeOnly 'com.mysql:mysql-connector-j'
+
+	// 자동 리로드
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+	// Test 의존성
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+jacoco {
+	toolVersion = "0.8.12"
+	reportsDirectory = layout.buildDirectory.dir('jacocoReport')
+}
+
+test {
+	useJUnitPlatform()
+	finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		xml.required = true
+		csv.required = false
+		html.required = true
+	}
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: [
+					'**/dto/**',
+					'**/event/**',
+					'**/*InitData*',
+					'**/*Application*',
+					'**/exception/**',
+					'**/config/**'
+			])
+		}))
+	}
+//	finalizedBy 'jacocoTestCoverageVerification'
+}
+
+//jacocoTestCoverageVerification {
+//	rule {
+//		enabled = true
+//		element = 'CLASS'
+//
+//		limit {
+//			counter = 'LINE'
+//			value = 'COVEREDRATIO'
+//			minimum = 0.00
+//		}
+//
+//		limit {
+//			counter = 'METHOD'
+//			value = 'COVEREDRATIO'
+//			minimum = 0.00
+//		}
+//
+//		excludes = [
+//				'**/dto/**',
+//				'**/event/**',
+//				'**/*InitData*',
+//				'**/*Application*',
+//				'**/exception/**',
+//				'**/config/**'
+//		]
+//	}
+//}
+
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
