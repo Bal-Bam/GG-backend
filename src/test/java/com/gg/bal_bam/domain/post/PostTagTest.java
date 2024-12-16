@@ -22,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -77,7 +78,8 @@ public class PostTagTest {
         //given
         postRequest.getTaggedUsers().add(new TaggedUserRequest(taggedUserId, "taggedUser"));
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.findById(taggedUserId)).thenReturn(Optional.of(taggedUser));
+        when(userRepository.findAllById(List.of(taggedUserId))).thenReturn(List.of(taggedUser));
+
         when(postRepository.save(any(Post.class))).thenReturn(Post.createPost(
                 user,
                 null,
@@ -87,12 +89,13 @@ public class PostTagTest {
                 postRequest.getLongitude()
         ));
 
+
         //when
         Throwable thrown = catchThrowable(() -> postService.createPost(postRequest, userId));
 
         //then
         verify(postRepository, times(1)).save(any(Post.class));
-        verify(postTagRepository, times(1)).save(any(PostTag.class));
+        verify(postTagRepository, times(1)).saveAll(anyList());
         assertThat(thrown).isNull();
     }
 
@@ -102,15 +105,15 @@ public class PostTagTest {
         //given
         postRequest.getTaggedUsers().add(new TaggedUserRequest(taggedUserId, "taggedUser"));
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.findById(taggedUserId)).thenReturn(Optional.empty());
+        when(userRepository.findAllById(List.of(taggedUserId))).thenReturn(List.of());
 
         //when
         Throwable thrown = catchThrowable(() -> postService.createPost(postRequest, userId));
 
         //then
-        verify(postRepository, never()).save(any(Post.class));
-        verify(postTagRepository, never()).save(any(PostTag.class));
-        assertThat(thrown).isInstanceOf(CustomException.class).hasMessage("태그된 사용자가 존재하지 않습니다. 사용자 ID: " + taggedUserId);
+        verify(postRepository, times(1)).save(any(Post.class));
+        verify(postTagRepository, never()).saveAll(anyList());
+        assertThat(thrown).isInstanceOf(CustomException.class).hasMessage("태그된 사용자 중 일부 사용자가 존재하지 않습니다.");
     }
 
     @Test
@@ -122,14 +125,14 @@ public class PostTagTest {
 
         postUpdateRequest.getTaggedUsers().add(new TaggedUserRequest(taggedUserId, "taggedUser"));
         when(postRepository.findById(postId)).thenReturn(Optional.of(post));
-        when(userRepository.findById(taggedUserId)).thenReturn(Optional.of(taggedUser));
+        when(userRepository.findAllById(List.of(taggedUserId))).thenReturn(List.of(taggedUser));
 
         //when
         Throwable thrown = catchThrowable(() -> postService.updatePost(1L, postUpdateRequest, userId));
 
         //then
         verify(postTagRepository, times(1)).deleteByPost(post);
-        verify(postTagRepository, times(1)).save(any(PostTag.class));
+        verify(postTagRepository, times(1)).saveAll(anyList());
         assertThat(thrown).isNull();
     }
 
@@ -142,14 +145,14 @@ public class PostTagTest {
 
         postUpdateRequest.getTaggedUsers().add(new TaggedUserRequest(taggedUserId, "taggedUser"));
         when(postRepository.findById(postId)).thenReturn(Optional.of(post));
-        when(userRepository.findById(taggedUserId)).thenReturn(Optional.empty());
+        when(userRepository.findAllById(List.of(taggedUserId))).thenReturn(List.of());
 
         //when
         Throwable thrown = catchThrowable(() -> postService.updatePost(1L, postUpdateRequest, userId));
 
         //then
-        verify(postTagRepository, never()).deleteByPost(post);
-        verify(postTagRepository, never()).save(any(PostTag.class));
-        assertThat(thrown).isInstanceOf(CustomException.class).hasMessage("태그된 사용자가 존재하지 않습니다. 사용자 ID: " + taggedUserId);
+        verify(postTagRepository, times(1)).deleteByPost(post);
+        verify(postTagRepository, never()).saveAll(anyList());
+        assertThat(thrown).isInstanceOf(CustomException.class).hasMessage("태그된 사용자 중 일부 사용자가 존재하지 않습니다.");
     }
 }
