@@ -90,23 +90,12 @@ public class PostService {
             throw new CustomException("게시글 작성자만 수정할 수 있습니다.");
         }
 
-        // 태그된 사용자 검증
-        if (postUpdateRequest.getTaggedUsers() != null) {
-            for (TaggedUserRequest taggedUserRequest : postUpdateRequest.getTaggedUsers()) {
-                userRepository.findById(taggedUserRequest.getUserId()).orElseThrow(
-                        () -> new CustomException("태그된 사용자가 존재하지 않습니다. 사용자 ID: " + taggedUserRequest.getUserId())
-                );
-            }
-        }
-
-
         post.updatePost(postUpdateRequest.getContent());
 
         //태그 사용자 처리 코드: 기존 태그 사용자 삭제 후 추가
         postTagRepository.deleteByPost(post);
 
         processTaggedUsers(post, postUpdateRequest.getTaggedUsers());
-
     }
 
     private void processTaggedUsers(Post post, List<TaggedUserRequest> taggedUsers) {
