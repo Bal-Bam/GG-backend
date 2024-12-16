@@ -63,16 +63,6 @@ public class PostService {
 
         }
 
-        // 태그된 사용자 검증
-        if (postRequest.getTaggedUsers() != null) {
-            for (TaggedUserRequest taggedUserRequest : postRequest.getTaggedUsers()) {
-                userRepository.findById(taggedUserRequest.getUserId()).orElseThrow(
-                        () -> new CustomException("태그된 사용자가 존재하지 않습니다. 사용자 ID: " + taggedUserRequest.getUserId())
-                );
-            }
-        }
-
-
         Post post = Post.createPost(
                 user,
                 parentPost,
@@ -120,15 +110,23 @@ public class PostService {
     }
 
     private void processTaggedUsers(Post post, List<TaggedUserRequest> taggedUsers) {
-        if (taggedUsers != null) {
-            taggedUsers.forEach(taggedUserRequest -> {
-                User taggedUser = userRepository.findById(taggedUserRequest.getUserId()).orElseThrow(
-                        () -> new CustomException("태그된 사용자가 존재하지 않습니다. 사용자 ID: " + taggedUserRequest.getUserId())
-                );
+        if (taggedUsers != null && !taggedUsers.isEmpty()) {
 
-                PostTag postTag = PostTag.createPostTag(post, taggedUser);
-                postTagRepository.save(postTag);
-            });
+            List<UUID> userIds = taggedUsers.stream()
+                    .map(TaggedUserRequest::getUserId)
+                    .toList();
+
+            List<User> users = userRepository.findAllById(userIds);
+
+            if (users.size() != userIds.size()) {
+                throw new CustomException("태그된 사용자 중 일부 사용자가 존재하지 않습니다.");
+            }
+
+            List<PostTag> postTags = users.stream()
+                    .map(user -> PostTag.createPostTag(post, user))
+                    .toList();
+
+            postTagRepository.saveAll(postTags);
         }
     }
 
